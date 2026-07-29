@@ -1,0 +1,42 @@
+name: Build & Publish Native Android APK
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-android:
+    name: 📱 Compile Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      
+      - name: Install & Build Web Bundle
+        run: |
+          npm ci --legacy-peer-deps
+          npm run build
+        env:
+          VITE_API_BASE_URL: https://api.merchantgo.store
+          
+      - name: Capacitor Android Build
+        run: |
+          npx cap sync android
+          cd android && ./gradlew assembleDebug
+          
+      - name: Upload to GitHub Releases
+        uses: softprops/action-gh-release@v1
+        with:
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
