@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Lock, Delete, ShieldCheck } from 'lucide-react';
 import { authenticatePin } from '../api/cloudClient';
 import type { MerchantSession } from '../api/cloudClient';
+import { authenticateLocalPin, hasLocalRegister } from '../localPos';
 
 interface PinKeypadProps {
   onAuthenticate: (session: MerchantSession) => void;
@@ -24,7 +25,7 @@ export const PinKeypad: React.FC<PinKeypadProps> = ({ onAuthenticate }) => {
 
   const verifyPin = async (code: string) => {
     try {
-      onAuthenticate(await authenticatePin(code));
+      onAuthenticate(await (hasLocalRegister() ? authenticateLocalPin(code) : authenticatePin(code)));
     } catch (authError) {
       setError(authError instanceof Error ? authError.message : 'Invalid staff PIN');
     } finally {
@@ -108,7 +109,7 @@ export const PinKeypad: React.FC<PinKeypadProps> = ({ onAuthenticate }) => {
         </div>
 
         <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '24px', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-          <ShieldCheck size={14} color="#00ff66" /> PINs are validated by the MerchantGo backend.
+          <ShieldCheck size={14} color="#00ff66" /> PINs are validated on this device in offline mode.
         </div>
 
       </div>

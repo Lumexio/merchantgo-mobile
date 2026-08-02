@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Lock, Search, Plus, Minus, Utensils, Zap, Users } from 'lucide-react';
+import { Lock, Search, Plus, Minus, Utensils, Zap } from 'lucide-react';
 import { ModifierModal } from '../components/ModifierModal';
-import { enqueueOfflineOperation, fetchMenuCatalog, flushOfflineQueue, settleExpressOrder, submitOrderToCloud } from '../api/cloudClient';
+import { fetchMenuCatalog, flushOfflineQueue, settleExpressOrder, submitOrderToCloud } from '../api/cloudClient';
 import type { MerchantSession } from '../api/cloudClient';
+import { ShiftControl } from '../components/ShiftControl';
+import { AdminSettings } from '../components/AdminSettings';
+import { getLocalShift, recordLocalOrder, setLocalCatalog } from '../localPos';
 
 interface OrderBuilderProps {
   session: MerchantSession;
@@ -12,7 +15,7 @@ interface OrderBuilderProps {
 export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLock }) => {
   const isSoloModeInit = session.mode === 'SOLO_FOOD_TRUCK';
   const [mode, setMode] = useState<'EXPRESS' | 'TABLE'>(isSoloModeInit ? 'EXPRESS' : 'TABLE');
-  const [activeOperator, setActiveOperator] = useState(session.name);
+  const [activeOperator, setActiveOperator] = useState(() => getLocalShift()?.staffName || session.name);
   
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,6 +28,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
   const [submitting, setSubmitting] = useState(false);
   const [showExpressPayModal, setShowExpressPayModal] = useState(false);
   const [cashTendered, setCashTendered] = useState<number | null>(null);
+  const [showAdminSettings, setShowAdminSettings] = useState(false);
 
   const defaultCatalog = [
     { id: 'FT1', name: 'Gourmet Smash Burger', cat: 'Food Truck Specials', price: '$16.50', image: '🍔' },
@@ -89,10 +93,23 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
   }, [session.token, session.offline]);
 
   useEffect(() => {
-    if (!session.token || session.offline) return;
+    if (session.offline) {
+      setLocalCatalog(catalog.map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.cat,
+        price: Number(String(item.price).replace(/[^0-9.]/g, '')),
+        active: true,
+      })));
+      return;
+    }
+    if (!session.token) return;
     fetchMenuCatalog(session)
       .then(items => {
-        if (items.length) setCatalog(items);
+        if (items.length) {
+          setCatalog(items);
+          setLocalCatalog(items);
+        }
         setCatalogNotice(
           session.plan === 'FREE'
             ? 'Catalog loaded from your Google Drive.'
@@ -116,7 +133,8 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
       if (!session.offline) {
         await submitOrderToCloud(payload, session.token || '');
       } else {
-        enqueueOfflineOperation({ kind: 'create_order', payload, created_at: new Date().toISOString() });
+        if (!getLocalShift()) throw new Error('Start a staff shift before creating orders');
+        recordLocalOrder(payload, false);
       }
       setSubmitting(false);
       alert(`Order confirmed for ${selectedTable}. The shared station will now lock.`);
@@ -139,7 +157,8 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
       if (!session.offline) {
         await settleExpressOrder(payload, session.token || '');
       } else {
-        enqueueOfflineOperation({ kind: 'settle_order', payload, created_at: new Date().toISOString() });
+        if (!getLocalShift()) throw new Error('Start a staff shift before settling orders');
+        recordLocalOrder(payload, true);
       }
       setSubmitting(false);
       setShowExpressPayModal(false);
@@ -171,21 +190,19 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
             </button>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(255,255,255,0.04)', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
-            <Users size={16} color="#00ff66" />
-            <select 
-              value={activeOperator}
-              onChange={(e) => setActiveOperator(e.target.value)}
-              style={{ background: 'transparent', border: 'none', color: '#fff', fontWeight: 800, fontSize: '0.92rem', fontFamily: 'Outfit', outline: 'none', cursor: 'pointer' }}
-            >
-              <option value="Owner (Lone Truck)">👤 Owner (Lone Truck)</option>
-              <option value="Helper #1 (Marco)">👤 Helper #1 (Marco)</option>
-              <option value="Helper #2 (Sofia)">👤 Helper #2 (Sofia)</option>
-            </select>
-          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {session.role === 'ADMIN' && (
+            <button onClick={() => setShowAdminSettings(true)} className="btn-secondary" style={{ padding: '10px 14px' }}>
+              Settings & Sync
+            </button>
+          )}
+          <ShiftControl
+            offline={session.offline}
+            onLock={onLock}
+            onShiftChange={shift => setActiveOperator(shift?.staffName || session.name)}
+          />
           <select 
             value={selectedTable}
             onChange={(e) => setSelectedTable(e.target.value)}
@@ -423,6 +440,9 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
 
           </div>
         </div>
+      )}
+      {showAdminSettings && (
+        <AdminSettings operator={session} onClose={() => setShowAdminSettings(false)} />
       )}
 
     </div>

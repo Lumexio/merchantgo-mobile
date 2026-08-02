@@ -28,6 +28,13 @@ async function request(path: string, options: RequestInit = {}) {
   return json.data ?? json;
 }
 
+function authorized(token: string, json = false): Record<string, string> {
+  return {
+    ...(json ? { 'Content-Type': 'application/json' } : {}),
+    Authorization: ['Bearer', token].join(' '),
+  };
+}
+
 export function authenticatePin(pin: string): Promise<MerchantSession> {
   return request('/auth/pin', {
     method: 'POST',
@@ -42,6 +49,70 @@ export function loginMerchantGoAccount(email: string, password: string): Promise
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
+}
+
+export function registerMerchantGoAccount(
+  email: string,
+  password: string,
+  name: string,
+  mode: MerchantSession['mode'],
+): Promise<MerchantSession> {
+  return request('/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, name, mode }),
+  });
+}
+
+export function googleDriveStatus(token: string) {
+  return request('/cloud/google/status', {
+    headers: authorized(token),
+  });
+}
+
+export async function connectGoogleDrive(token: string) {
+  const { url } = await request('/cloud/google/authorize', {
+    headers: authorized(token),
+  });
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+export function pushSnapshot(snapshot: unknown, session: MerchantSession) {
+  if (session.plan === 'FREE') {
+    return request('/cloud/google/push', {
+      method: 'POST',
+      headers: authorized(session.token || '', true),
+      body: JSON.stringify({ snapshot }),
+    });
+  }
+  return request('/tenant/snapshot/import', {
+    method: 'POST',
+    headers: authorized(session.token || '', true),
+    body: JSON.stringify({ snapshot, dryRun: false }),
+  });
+}
+
+export function previewSnapshot(snapshot: unknown, session: MerchantSession) {
+  if (session.plan === 'FREE') return Promise.resolve({ source: 'local', snapshot });
+  return request('/tenant/snapshot/import', {
+    method: 'POST',
+    headers: authorized(session.token || '', true),
+    body: JSON.stringify({ snapshot, dryRun: true }),
+  });
+}
+
+export async function pullSnapshot(session: MerchantSession) {
+  if (session.plan === 'FREE') {
+    const result = await request('/cloud/google/pull', {
+      method: 'POST',
+      headers: authorized(session.token || ''),
+    });
+    return result.snapshot;
+  }
+  const result = await request('/tenant/snapshot', {
+    headers: authorized(session.token || ''),
+  });
+  return result.snapshot;
 }
 
 export async function fetchMenuCatalog(session: MerchantSession) {

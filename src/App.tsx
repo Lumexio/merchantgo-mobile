@@ -1,14 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PinKeypad } from './components/PinKeypad';
 import { OrderBuilderScreen } from './screens/OrderBuilderScreen';
 import './index.css';
 import type { MerchantSession } from './api/cloudClient';
 import { loginMerchantGoAccount } from './api/cloudClient';
+import { createLocalAdmin, hasLocalRegister } from './localPos';
+import type { LocalMode } from './localPos';
 
 export default function App() {
-  const [isFirstLaunch, setIsFirstLaunch] = useState(true);
+  const [isFirstLaunch, setIsFirstLaunch] = useState(() => !hasLocalRegister());
   const [isSettingUpOffline, setIsSettingUpOffline] = useState(false);
   const [localAdminName, setLocalAdminName] = useState('');
+  const [localAdminPin, setLocalAdminPin] = useState('');
+  const [localMode, setLocalMode] = useState<LocalMode>('SOLO_FOOD_TRUCK');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
@@ -18,6 +22,21 @@ export default function App() {
   const handleLockStation = () => {
     setSession(null);
   };
+
+  useEffect(() => {
+    if (!session) return;
+    let timer = window.setTimeout(handleLockStation, 5 * 60 * 1000);
+    const reset = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(handleLockStation, 5 * 60 * 1000);
+    };
+    const events = ['pointerdown', 'keydown', 'touchstart'];
+    events.forEach(event => window.addEventListener(event, reset));
+    return () => {
+      window.clearTimeout(timer);
+      events.forEach(event => window.removeEventListener(event, reset));
+    };
+  }, [session]);
 
   if (isFirstLaunch) {
     return (
@@ -54,18 +73,19 @@ export default function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <h2 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Create Local Admin</h2>
               <input type="text" placeholder="Admin Name (e.g. Marco)" value={localAdminName} onChange={e => setLocalAdminName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: '#fff' }} />
-              <input type="password" placeholder="Secure Password" style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: '#fff' }} />
-              <button style={{ padding: '14px', borderRadius: '8px', border: 'none', background: '#00ff66', color: '#000', fontWeight: 600, marginTop: '8px', cursor: 'pointer' }} onClick={() => {
-                setIsFirstLaunch(false);
-                setSession({
-                  id: 'local-admin',
-                  name: localAdminName || 'Local Admin',
-                  role: 'ADMIN',
-                  plan: 'FREE',
-                  mode: 'SOLO_FOOD_TRUCK',
-                  entitlements: { features: ['CREATE_ORDER', 'SETTLE_ORDER', 'VIEW_ANALYTICS', 'MANAGE_MENU', 'INDIVIDUAL_CASHOUT'], limits: { menuItems: 25, staff: 1, branches: 1 } },
-                  offline: true,
-                });
+              <select value={localMode} onChange={event => setLocalMode(event.target.value as LocalMode)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: '#14171e', color: '#fff' }}>
+                <option value="SOLO_FOOD_TRUCK">Solo Food Truck</option>
+                <option value="MULTI_STATION_BAR">Multi-station Restaurant / Bar</option>
+              </select>
+              <input type="password" inputMode="numeric" placeholder="4 digit staff PIN" value={localAdminPin} onChange={event => setLocalAdminPin(event.target.value.replace(/\D/g, '').slice(0, 4))} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: '#fff' }} />
+              <button style={{ padding: '14px', borderRadius: '8px', border: 'none', background: '#00ff66', color: '#000', fontWeight: 600, marginTop: '8px', cursor: 'pointer' }} onClick={async () => {
+                try {
+                  setAuthError('');
+                  setSession(await createLocalAdmin(localAdminName, localAdminPin, localMode));
+                  setIsFirstLaunch(false);
+                } catch (error) {
+                  setAuthError(error instanceof Error ? error.message : 'Local setup failed');
+                }
               }}>
                 Initialize Local Register
               </button>
