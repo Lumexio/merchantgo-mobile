@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a reproducible MerchantGo tablet or Android defect.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include PIN/order steps, role, tenant/branch scenario, and whether the station relocked.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [PIN or station lock, Orders or modifiers, API or connectivity, Tablet layout, Capacitor or Android, Release, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Device/emulator, Android version, orientation, app version, network state, and sanitized logs.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed PINs, credentials, tokens, personal data, and tenant-sensitive values.
+          required: true

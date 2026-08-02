@@ -1,34 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Lock, Search, Plus, Minus, Utensils, Zap, Users } from 'lucide-react';
 import { ModifierModal } from '../components/ModifierModal';
+import { enqueueOfflineOperation, fetchMenuCatalog, flushOfflineQueue, settleExpressOrder, submitOrderToCloud } from '../api/cloudClient';
+import type { MerchantSession } from '../api/cloudClient';
 
 interface OrderBuilderProps {
-  staffName: string;
+  session: MerchantSession;
   onLock: () => void;
 }
 
-export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ staffName, onLock }) => {
-  const isSoloModeInit = staffName.includes('Solo') || staffName.includes('Express');
+export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLock }) => {
+  const isSoloModeInit = session.mode === 'SOLO_FOOD_TRUCK';
   const [mode, setMode] = useState<'EXPRESS' | 'TABLE'>(isSoloModeInit ? 'EXPRESS' : 'TABLE');
-  const [activeOperator, setActiveOperator] = useState(isSoloModeInit ? 'Owner (Lone Truck)' : staffName);
+  const [activeOperator, setActiveOperator] = useState(session.name);
   
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTable, setSelectedTable] = useState(isSoloModeInit ? 'Express Counter #1' : 'Table #4 (Patio)');
   
-  const [cart, setCart] = useState<any[]>([
-    { id: '1', customName: isSoloModeInit ? 'Gourmet Smash Burger' : 'Ribeye Tacos', price: isSoloModeInit ? 16.50 : 18.50, qty: 2 },
-    { id: '2', customName: isSoloModeInit ? 'Agave Craft Lemonade' : 'Añejo Margarita', price: isSoloModeInit ? 6.50 : 14.00, qty: 1 }
-  ]);
+  const [cart, setCart] = useState<any[]>([]);
   
   const [activeItemForMod, setActiveItemForMod] = useState<any | null>(null);
+  const [editingCartItemIdx, setEditingCartItemIdx] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showExpressPayModal, setShowExpressPayModal] = useState(false);
   const [cashTendered, setCashTendered] = useState<number | null>(null);
 
-  const categories = ['All', 'Food Truck Specials', 'Main Kitchen', 'Beverages', 'Bar & Cocktails'];
-
-  const catalog = [
+  const defaultCatalog = [
     { id: 'FT1', name: 'Gourmet Smash Burger', cat: 'Food Truck Specials', price: '$16.50', image: '🍔' },
     { id: 'FT2', name: 'Loaded Truffle Fries', cat: 'Food Truck Specials', price: '$9.00', image: '🍟' },
     { id: 'BV1', name: 'Agave Craft Lemonade', cat: 'Beverages', price: '$6.50', image: '🍋' },
@@ -37,6 +35,9 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ staffName, onL
     { id: 'B1', name: 'Añejo Margarita', cat: 'Bar & Cocktails', price: '$14.00', image: '🍸' },
     { id: 'B2', name: 'IPA Craft Beer Pint', cat: 'Bar & Cocktails', price: '$8.00', image: '🍺' },
   ];
+  const [catalog, setCatalog] = useState(defaultCatalog);
+  const [catalogNotice, setCatalogNotice] = useState('');
+  const categories = ['All', ...new Set(catalog.map(item => item.cat))];
 
   const filteredCatalog = catalog.filter(it => {
     const matchesCat = selectedCategory === 'All' || it.cat === selectedCategory;
@@ -61,6 +62,16 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ staffName, onL
     setActiveItemForMod(null);
   };
 
+  const handleUpdateCartItem = (modifiedItem: any) => {
+    if (editingCartItemIdx !== null) {
+      const updated = [...cart];
+      updated[editingCartItemIdx].customName = modifiedItem.customName;
+      updated[editingCartItemIdx].price = modifiedItem.calculatedPrice;
+      setCart(updated);
+    }
+    setEditingCartItemIdx(null);
+  };
+
   const adjustQty = (idx: number, delta: number) => {
     const updated = [...cart];
     updated[idx].qty += delta;
@@ -72,25 +83,73 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ staffName, onL
 
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-  const handleTableOrderConfirm = () => {
+  useEffect(() => {
+    if (!session.token || session.offline) return;
+    flushOfflineQueue(session.token).catch(() => null);
+  }, [session.token, session.offline]);
+
+  useEffect(() => {
+    if (!session.token || session.offline) return;
+    fetchMenuCatalog(session)
+      .then(items => {
+        if (items.length) setCatalog(items);
+        setCatalogNotice(
+          session.plan === 'FREE'
+            ? 'Catalog loaded from your Google Drive.'
+            : 'Catalog loaded from MerchantGo managed storage.',
+        );
+      })
+      .catch(error => setCatalogNotice(
+        `${error instanceof Error ? error.message : 'Catalog sync failed'} Using this device's starter catalog.`,
+      ));
+  }, [session]);
+
+  const handleTableOrderConfirm = async () => {
     if (cart.length === 0) return;
     setSubmitting(true);
-    setTimeout(() => {
+    try {
+      const payload = {
+        table: selectedTable,
+        total: cartTotal,
+        items: cart.map(item => `${item.customName} x${item.qty}`),
+      };
+      if (!session.offline) {
+        await submitOrderToCloud(payload, session.token || '');
+      } else {
+        enqueueOfflineOperation({ kind: 'create_order', payload, created_at: new Date().toISOString() });
+      }
       setSubmitting(false);
-      alert(`✅ Table order emitted via WebSockets for [${selectedTable}]. Station will now auto-lock for shared Waiter security.`);
+      alert(`Order confirmed for ${selectedTable}. The shared station will now lock.`);
       onLock();
-    }, 600);
+    } catch (error) {
+      setSubmitting(false);
+      alert(error instanceof Error ? error.message : 'Order submission failed');
+    }
   };
 
-  const handleRapidExpressSettle = (method: string) => {
+  const handleRapidExpressSettle = async (paymentMethod: 'CASH' | 'CARD') => {
     setSubmitting(true);
-    setTimeout(() => {
+    try {
+      const payload = {
+        paymentMethod,
+        table: selectedTable,
+        total: cartTotal,
+        items: cart.map(item => `${item.customName} x${item.qty}`),
+      };
+      if (!session.offline) {
+        await settleExpressOrder(payload, session.token || '');
+      } else {
+        enqueueOfflineOperation({ kind: 'settle_order', payload, created_at: new Date().toISOString() });
+      }
       setSubmitting(false);
       setShowExpressPayModal(false);
       setCashTendered(null);
-      alert(`⚡ [Express Settle via ${method}] $${cartTotal.toFixed(2)} recorded to Appwrite & Stripe! Cart wiped instantly for next customer in queue.`);
+      alert(`Express ${paymentMethod.toLowerCase()} payment recorded. Cart cleared for the next customer.`);
       setCart([]);
-    }, 500);
+    } catch (error) {
+      setSubmitting(false);
+      alert(error instanceof Error ? error.message : 'Settlement failed');
+    }
   };
 
   return (
@@ -153,6 +212,11 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ staffName, onL
           </button>
         </div>
       </header>
+      {catalogNotice && (
+        <div style={{ padding: '8px 28px', background: 'rgba(0,255,102,0.1)', color: '#00ff66', fontSize: '0.8rem' }}>
+          {catalogNotice}
+        </div>
+      )}
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <div style={{ flex: 1, padding: '32px', overflowY: 'auto', borderRight: '1px solid var(--border-glass)' }}>
@@ -239,7 +303,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ staffName, onL
             {cart.map((item, idx) => (
               <div key={idx} style={{ padding: '16px', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fff' }}>{item.customName}</span>
+                  <span onClick={() => setEditingCartItemIdx(idx)} style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fff', cursor: 'pointer', textDecoration: 'underline' }} title="Tap to add or edit modifiers">{item.customName}</span>
                   <strong style={{ fontFamily: 'Outfit', fontSize: '1.15rem', color: '#00ff66' }}>${(item.price * item.qty).toFixed(2)}</strong>
                 </div>
 
@@ -302,6 +366,14 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ staffName, onL
         />
       )}
 
+      {editingCartItemIdx !== null && (
+        <ModifierModal 
+          item={{ name: cart[editingCartItemIdx].customName, price: `$${cart[editingCartItemIdx].price.toFixed(2)}` }}
+          onClose={() => setEditingCartItemIdx(null)}
+          onConfirm={handleUpdateCartItem}
+        />
+      )}
+
       {showExpressPayModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(12px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
           <div className="glass-tablet" style={{ width: '100%', maxWidth: '540px', padding: '40px', position: 'relative', border: '2px solid #00ff66', textAlign: 'center' }}>
@@ -338,11 +410,11 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ staffName, onL
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <button onClick={() => handleRapidExpressSettle('Exact Cash Tender')} className="btn-staff" style={{ width: '100%', padding: '16px', fontSize: '1.15rem', background: '#00cc52', color: '#000' }}>
+              <button onClick={() => handleRapidExpressSettle('CASH')} disabled={submitting} className="btn-staff" style={{ width: '100%', padding: '16px', fontSize: '1.15rem', background: '#00cc52', color: '#000' }}>
                 💵 Confirm Cash Payment & Wipe Cart →
               </button>
-              <button onClick={() => handleRapidExpressSettle('Stripe Contactless NFC Terminal')} className="btn-staff" style={{ width: '100%', padding: '16px', fontSize: '1.15rem', background: '#635bff', color: '#fff' }}>
-                💳 Settle via Stripe Contactless Card Reader
+              <button onClick={() => handleRapidExpressSettle('CARD')} disabled={submitting} className="btn-staff" style={{ width: '100%', padding: '16px', fontSize: '1.15rem', background: '#635bff', color: '#fff' }}>
+                💳 Confirm External Card Terminal Payment
               </button>
               <button onClick={() => setShowExpressPayModal(false)} className="btn-secondary" style={{ width: '100%', padding: '12px', fontSize: '0.95rem', marginTop: '6px' }}>
                 Cancel / Return to Cart

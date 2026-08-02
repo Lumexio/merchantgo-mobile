@@ -99,7 +99,7 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({ item, onClose, onC
           </div>
           
           <button onClick={handleAdd} className="btn-staff" style={{ padding: '16px 36px', fontSize: '1.15rem' }}>
-            Confirm & Add to Table →
+            Confirm Modifiers & Save →
           </button>
         </div>
       </div>

@@ -1,20 +1,15 @@
 import React, { useState } from 'react';
-import { Lock, Delete, ShieldCheck, Truck } from 'lucide-react';
+import { Lock, Delete, ShieldCheck } from 'lucide-react';
+import { authenticatePin } from '../api/cloudClient';
+import type { MerchantSession } from '../api/cloudClient';
 
 interface PinKeypadProps {
-  onAuthenticate: (staffName: string, staffPin: string) => void;
+  onAuthenticate: (session: MerchantSession) => void;
 }
 
 export const PinKeypad: React.FC<PinKeypadProps> = ({ onAuthenticate }) => {
   const [pin, setPin] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
-
-  const staffMap: Record<string, string> = {
-    '1234': 'Server #3 (Carlos M.)',
-    '2026': 'Bartender #1 (Elena V.)',
-    '8888': 'Floor Station Lead (Marcus T.)',
-    '0000': 'Solo Truck Owner (Self / Express Mode)'
-  };
 
   const handlePress = (num: string) => {
     if (pin.length < 4) {
@@ -27,25 +22,19 @@ export const PinKeypad: React.FC<PinKeypadProps> = ({ onAuthenticate }) => {
     }
   };
 
-  const verifyPin = (code: string) => {
-    setTimeout(() => {
-      if (staffMap[code] || code === '0000') {
-        onAuthenticate(staffMap[code] || `Server Station (PIN #${code})`, code);
-        setPin('');
-      } else {
-        setError('Invalid Waitstaff PIN code. Please re-enter.');
-        setPin('');
-      }
-    }, 250);
+  const verifyPin = async (code: string) => {
+    try {
+      onAuthenticate(await authenticatePin(code));
+    } catch (authError) {
+      setError(authError instanceof Error ? authError.message : 'Invalid staff PIN');
+    } finally {
+      setPin('');
+    }
   };
 
   const handleDelete = () => {
     setPin(pin.slice(0, -1));
     setError(null);
-  };
-
-  const handleSoloBypass = () => {
-    onAuthenticate('Solo Food Truck Owner (Express Mode)', 'EXPRESS_00');
   };
 
   return (
@@ -118,34 +107,8 @@ export const PinKeypad: React.FC<PinKeypadProps> = ({ onAuthenticate }) => {
           </button>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '24px' }}>
-          <button 
-            onClick={handleSoloBypass}
-            style={{
-              width: '100%',
-              padding: '16px',
-              borderRadius: '16px',
-              background: 'linear-gradient(135deg, #00cc52, #008033)',
-              border: 'none',
-              color: '#000',
-              fontWeight: 900,
-              fontSize: '1.05rem',
-              fontFamily: 'Outfit',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              boxShadow: '0 4px 20px rgba(0, 204, 82, 0.35)',
-              transition: 'all 0.2s'
-            }}
-          >
-            <Truck size={22} /> Launch Solo Food Truck Express POS →
-          </button>
-          
-          <div style={{ marginTop: '16px', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-            <ShieldCheck size={14} color="#00ff66" /> No PIN required in Solo Owner Quick-Serve mode.
-          </div>
+        <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '24px', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <ShieldCheck size={14} color="#00ff66" /> PINs are validated by the MerchantGo backend.
         </div>
 
       </div>

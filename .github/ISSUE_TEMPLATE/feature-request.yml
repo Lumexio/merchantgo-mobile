@@ -1,0 +1,31 @@
+name: Feature request
+description: Propose a MerchantGo waiter or bartender station capability.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: User need
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Proposed station behavior
+      description: Include roles, PIN/lock lifecycle, order flow, offline/error behavior, and tablet orientation.
+    validations:
+      required: true
+  - type: textarea
+    id: cascade
+    attributes:
+      label: Cross-repository and native impact
+      description: Note backend, desktop, web, Capacitor/Android, permissions, and release changes.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+    validations:
+      required: true
