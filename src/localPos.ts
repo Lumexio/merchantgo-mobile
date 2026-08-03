@@ -137,10 +137,10 @@ function sessionFor(staff: LocalStaff, local: LocalConfig): MerchantSession {
         'CREATE_ORDER',
         'SETTLE_ORDER',
         'VIEW_ANALYTICS',
-        ...(staff.role === 'ADMIN' ? ['MANAGE_MENU', 'INDIVIDUAL_CASHOUT'] : []),
-        ...(multiStation && staff.role === 'ADMIN' ? ['MANAGE_STAFF'] : []),
+        ...(['ADMIN', 'OWNER'].includes(staff.role) ? ['MANAGE_MENU', 'INDIVIDUAL_CASHOUT'] : []),
+        ...(multiStation && ['ADMIN', 'OWNER'].includes(staff.role) ? ['MANAGE_STAFF'] : []),
       ],
-      limits: { menuItems: 25, staff: multiStation ? 10 : 1, branches: 1 },
+      limits: { menuItems: 999, staff: 99, branches: 1 },
     },
     offline: true,
   };
