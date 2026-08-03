@@ -10,14 +10,11 @@ import {
 } from '../api/cloudClient';
 import type { MerchantSession } from '../api/cloudClient';
 import {
-  addLocalMenuItem,
   commitLocalMerge,
   createLocalSnapshot,
-  getLocalCatalog,
   previewLocalMerge,
-  removeLocalMenuItem,
 } from '../localPos';
-import type { LocalMenuItem, LocalSnapshot } from '../localPos';
+import type { LocalSnapshot } from '../localPos';
 
 interface Props {
   operator: MerchantSession;
