@@ -53,7 +53,7 @@ export function MenuRegistrationModal({ onClose, onCatalogChange }: Props) {
               setStatus(error instanceof Error ? error.message : 'Could not save item');
             }
           }} className="btn-staff" style={{ padding: '12px' }}>Add {isIngredient ? 'Ingredient' : 'Item'}</button>
-          {status && <p style={{ color: '#00ff66' }}>{status}</p>}
+          {status && <p style={{ color: 'var(--accent-success)' }}>{status}</p>}
 
           <div style={{ marginTop: '20px' }}>
             <h3 style={{ marginBottom: '10px' }}>Current Local Catalog</h3>
@@ -75,5 +75,5 @@ const inputStyle = {
   borderRadius: '8px',
   border: '1px solid rgba(255,255,255,.1)',
   background: 'rgba(0,0,0,.35)',
-  color: '#fff',
+  color: 'var(--text-main)',
 };

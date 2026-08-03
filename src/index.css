@@ -1,8 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root, [data-theme="dark-default"] {
-  --primary-staff: #00b368;
+  --primary: #00b368;
   --primary-hover: #00cc76;
+  --accent-error: #ff8585;
+  --accent-success: #00ff66;
   --bg-dark: #0a0c10;
   --bg-card: rgba(22, 25, 33, 0.85);
   --border-glass: rgba(255, 255, 255, 0.08);
@@ -13,8 +15,10 @@
 }
 
 [data-theme="light-default"] {
-  --primary-staff: #00b368;
+  --primary: #00b368;
   --primary-hover: #00cc76;
+  --accent-error: #ff4d4d;
+  --accent-success: #00cc52;
   --bg-dark: #f0f2f5;
   --bg-card: rgba(255, 255, 255, 0.85);
   --border-glass: rgba(0, 0, 0, 0.08);
@@ -23,8 +27,10 @@
 }
 
 [data-theme="dark-ocean"] {
-  --primary-staff: #00a8ff;
+  --primary: #00a8ff;
   --primary-hover: #0097e6;
+  --accent-error: #ff8585;
+  --accent-success: #00ff66;
   --bg-dark: #091428;
   --bg-card: rgba(10, 20, 40, 0.85);
   --border-glass: rgba(255, 255, 255, 0.1);
@@ -33,8 +39,10 @@
 }
 
 [data-theme="light-warm"] {
-  --primary-staff: #ff6b00;
+  --primary: #ff6b00;
   --primary-hover: #e66000;
+  --accent-error: #ff4d4d;
+  --accent-success: #00cc52;
   --bg-dark: #fffdf5;
   --bg-card: rgba(255, 252, 240, 0.85);
   --border-glass: rgba(0, 0, 0, 0.08);
@@ -65,8 +73,8 @@ h1, h2, h3, h4 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--primary-staff);
-  color: #000;
+  background: var(--primary);
+  color: #000; /* Contrast color for primary */
   font-family: 'Outfit', sans-serif;
   font-weight: 800;
   padding: 14px 28px;
@@ -74,7 +82,7 @@ h1, h2, h3, h4 {
   border: none;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 18px rgba(0, 179, 104, 0.35);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
   font-size: 1.05rem;
 }
 
@@ -89,7 +97,7 @@ h1, h2, h3, h4 {
   justify-content: center;
   gap: 8px;
   background: rgba(255, 255, 255, 0.06);
-  color: #fff;
+  color: var(--text-main);
   font-family: 'Outfit', sans-serif;
   font-weight: 600;
   padding: 12px 20px;

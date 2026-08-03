@@ -58,7 +58,7 @@ export function ShiftControl({ offline, onLock, onShiftChange }: ShiftControlPro
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="btn-secondary" style={{ padding: '10px 14px', color: shift ? '#00ff66' : '#ffb800' }}>
+      <button onClick={() => setOpen(true)} className="btn-secondary" style={{ padding: '10px 14px', color: shift ? 'var(--accent-success)' : '#ffb800' }}>
         {shift ? <UserCheck size={16} /> : <Clock3 size={16} />}
         {shift ? `Shift: ${shift.staffName}` : 'Start staff shift'}
       </button>
@@ -78,14 +78,14 @@ export function ShiftControl({ offline, onLock, onShiftChange }: ShiftControlPro
                 onChange={event => setPin(event.target.value.replace(/\D/g, '').slice(0, 8))}
                 onKeyDown={event => event.key === 'Enter' && start()}
                 placeholder="Staff PIN"
-                style={{ width: '100%', padding: '14px', borderRadius: '10px', background: 'rgba(0,0,0,.4)', border: '1px solid var(--border-glass)', color: '#fff', marginBottom: '12px' }}
+                style={{ width: '100%', padding: '14px', borderRadius: '10px', background: 'rgba(0,0,0,.4)', border: '1px solid var(--border-glass)', color: 'var(--text-main)', marginBottom: '12px' }}
               />
             )}
-            {error && <p style={{ color: '#ff8585', marginBottom: '12px' }}>{error}</p>}
+            {error && <p style={{ color: 'var(--accent-error)', marginBottom: '12px' }}>{error}</p>}
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => { setOpen(false); setError(''); }} className="btn-secondary" style={{ flex: 1, padding: '12px' }}>Cancel</button>
               {shift ? (
-                <button onClick={close} className="btn-secondary" style={{ flex: 2, padding: '12px', color: '#ff8585' }}>
+                <button onClick={close} className="btn-secondary" style={{ flex: 2, padding: '12px', color: 'var(--accent-error)' }}>
                   <LogOut size={16} /> Generate Z-report & end shift
                 </button>
               ) : (

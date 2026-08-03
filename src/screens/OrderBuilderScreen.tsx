@@ -172,13 +172,13 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
           <div style={{ display: 'flex', background: 'rgba(0,0,0,0.5)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
             <button
               onClick={() => { setMode('EXPRESS'); setSelectedTable('Express Counter #1'); }}
-              style={{ padding: '8px 14px', borderRadius: '10px', border: 'none', background: mode === 'EXPRESS' ? '#00ff66' : 'transparent', color: mode === 'EXPRESS' ? '#000' : '#fff', fontWeight: 900, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
+              style={{ padding: '8px 14px', borderRadius: '10px', border: 'none', background: mode === 'EXPRESS' ? 'var(--accent-success)' : 'transparent', color: mode === 'EXPRESS' ? '#000' : 'var(--text-main)', fontWeight: 900, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
             >
               <Zap size={15} /> Express Register
             </button>
             <button
               onClick={() => { setMode('TABLE'); setSelectedTable('Table #4 (Patio)'); }}
-              style={{ padding: '8px 14px', borderRadius: '10px', border: 'none', background: mode === 'TABLE' ? '#00b368' : 'transparent', color: mode === 'TABLE' ? '#fff' : '#ccc', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
+              style={{ padding: '8px 14px', borderRadius: '10px', border: 'none', background: mode === 'TABLE' ? '#00b368' : 'transparent', color: mode === 'TABLE' ? 'var(--text-main)' : '#ccc', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
             >
               🍽️ Table Service
             </button>
@@ -189,7 +189,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {session.role === 'ADMIN' && (
             <>
-              <button onClick={() => setShowMenuRegistration(true)} className="btn-secondary" style={{ padding: '10px 14px', borderColor: '#00ff66', color: '#00ff66' }}>
+              <button onClick={() => setShowMenuRegistration(true)} className="btn-secondary" style={{ padding: '10px 14px', borderColor: 'var(--accent-success)', color: 'var(--accent-success)' }}>
                 + Menu / Ingredients
               </button>
               <button onClick={() => setShowAdminSettings(true)} className="btn-secondary" style={{ padding: '10px 14px' }}>
@@ -205,7 +205,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
           <select 
             value={selectedTable}
             onChange={(e) => setSelectedTable(e.target.value)}
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-glass)', color: '#fff', padding: '10px 18px', borderRadius: '12px', fontSize: '1.02rem', fontWeight: 700, fontFamily: 'Outfit', outline: 'none' }}
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-glass)', color: 'var(--text-main)', padding: '10px 18px', borderRadius: '12px', fontSize: '1.02rem', fontWeight: 700, fontFamily: 'Outfit', outline: 'none' }}
           >
             {mode === 'EXPRESS' ? (
               <>
@@ -226,7 +226,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
           {['CASHIER', 'MANAGER', 'ADMIN', 'OWNER'].includes(session.role?.toUpperCase()) && (
             <select
               onChange={(e) => document.documentElement.setAttribute('data-theme', e.target.value)}
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-glass)', color: '#fff', padding: '10px 14px', borderRadius: '12px', fontSize: '0.9rem', outline: 'none' }}
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-glass)', color: 'var(--text-main)', padding: '10px 14px', borderRadius: '12px', fontSize: '0.9rem', outline: 'none' }}
               title="Theme (Ponytail mode: minimal CSS-based themes)"
             >
               <option value="dark-default">Dark (Default)</option>
@@ -235,13 +235,13 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
               <option value="light-warm">Warm</option>
             </select>
           )}
-          <button onClick={onLock} className="btn-secondary" style={{ padding: '10px 18px', background: 'rgba(255, 77, 77, 0.15)', borderColor: 'rgba(255, 77, 77, 0.4)', color: '#ff4d4d', fontWeight: 800 }}>
+          <button onClick={onLock} className="btn-secondary" style={{ padding: '10px 18px', background: 'rgba(var(--accent-error-rgb, 255, 77, 77), 0.15)', borderColor: 'rgba(var(--accent-error-rgb, 255, 77, 77), 0.4)', color: '#ff4d4d', fontWeight: 800 }}>
             <Lock size={16} /> {mode === 'EXPRESS' ? 'Lock Register' : 'Lock Station'}
           </button>
         </div>
       </header>
       {catalogNotice && (
-        <div style={{ padding: '8px 28px', background: 'rgba(0,255,102,0.1)', color: '#00ff66', fontSize: '0.8rem' }}>
+        <div style={{ padding: '8px 28px', background: 'rgba(0,255,102,0.1)', color: 'var(--accent-success)', fontSize: '0.8rem' }}>
           {catalogNotice}
         </div>
       )}
@@ -256,7 +256,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search menu item title or code (e.g. Smash Burger, FT1)..." 
-                style={{ width: '100%', padding: '16px 16px 16px 48px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '14px', color: '#fff', fontSize: '1.05rem', outline: 'none' }}
+                style={{ width: '100%', padding: '16px 16px 16px 48px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '14px', color: 'var(--text-main)', fontSize: '1.05rem', outline: 'none' }}
               />
             </div>
 
@@ -269,8 +269,8 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
                     padding: '0 18px',
                     borderRadius: '12px',
                     border: 'none',
-                    backgroundColor: selectedCategory === cat ? '#00ff66' : 'rgba(255,255,255,0.05)',
-                    color: selectedCategory === cat ? '#000' : '#fff',
+                    backgroundColor: selectedCategory === cat ? 'var(--accent-success)' : 'rgba(255,255,255,0.05)',
+                    color: selectedCategory === cat ? '#000' : 'var(--text-main)',
                     fontWeight: 800,
                     fontFamily: 'Outfit',
                     fontSize: '0.92rem',
@@ -287,7 +287,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '22px' }}>
             {catalog.length === 0 && (
-              <div className="glass-tablet" style={{ gridColumn: '1 / -1', padding: '36px', textAlign: 'center', border: '1px dashed #00ff66' }}>
+              <div className="glass-tablet" style={{ gridColumn: '1 / -1', padding: '36px', textAlign: 'center', border: '1px dashed var(--accent-success)' }}>
                 <span style={{ fontSize: '2.5rem' }}>1️⃣</span>
                 <h2 style={{ margin: '10px 0' }}>Create your first menu item</h2>
                 <p style={{ color: 'var(--text-muted)', marginBottom: '18px' }}>
@@ -301,7 +301,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
               </div>
             )}
             {filteredCatalog.map(it => (
-              <div key={it.id} onClick={() => setActiveItemForMod(it)} className="glass-tablet" style={{ padding: '24px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '180px', borderTop: '3px solid #00ff66' }}>
+              <div key={it.id} onClick={() => setActiveItemForMod(it)} className="glass-tablet" style={{ padding: '24px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '180px', borderTop: '3px solid var(--accent-success)' }}>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <span style={{ fontSize: '2.6rem' }}>{it.image}</span>
@@ -309,13 +309,13 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
                       #{it.id}
                     </span>
                   </div>
-                  <h3 style={{ fontSize: '1.3rem', color: '#fff', marginBottom: '4px' }}>{it.name}</h3>
+                  <h3 style={{ fontSize: '1.3rem', color: 'var(--text-main)', marginBottom: '4px' }}>{it.name}</h3>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{it.cat}</span>
                 </div>
 
                 <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#00ff66', fontFamily: 'Outfit' }}>{it.price}</span>
-                  <span style={{ fontSize: '0.8rem', color: '#fff', backgroundColor: 'rgba(255,255,255,0.08)', padding: '6px 12px', borderRadius: '8px', fontWeight: 700 }}>
+                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--accent-success)', fontFamily: 'Outfit' }}>{it.price}</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', backgroundColor: 'rgba(255,255,255,0.08)', padding: '6px 12px', borderRadius: '8px', fontWeight: 700 }}>
                     + Add / Custom
                   </span>
                 </div>
@@ -330,14 +330,14 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
               <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 800 }}>
                 {mode === 'EXPRESS' ? '⚡ EXPRESS COUNTER TICKET' : 'TABLE ORDER CART'}
               </span>
-              <span style={{ fontSize: '0.75rem', color: '#00ff66', fontWeight: 800 }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--accent-success)', fontWeight: 800 }}>
                 Operator: {activeOperator}
               </span>
             </div>
-            <h2 style={{ fontSize: '1.7rem', color: '#fff', marginBottom: '14px' }}>{selectedTable}</h2>
+            <h2 style={{ fontSize: '1.7rem', color: 'var(--text-main)', marginBottom: '14px' }}>{selectedTable}</h2>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#ccc' }}>
               <span>Items Total: <strong>{cart.reduce((s, i) => s + i.qty, 0)} units</strong></span>
-              <span style={{ color: '#00ff66', fontWeight: 700 }}>● {mode === 'EXPRESS' ? 'Ready to Settle' : 'Ready to Send'}</span>
+              <span style={{ color: 'var(--accent-success)', fontWeight: 700 }}>● {mode === 'EXPRESS' ? 'Ready to Settle' : 'Ready to Send'}</span>
             </div>
           </div>
 
@@ -345,18 +345,18 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
             {cart.map((item, idx) => (
               <div key={idx} style={{ padding: '16px', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <span onClick={() => setEditingCartItemIdx(idx)} style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fff', cursor: 'pointer', textDecoration: 'underline' }} title="Tap to add or edit modifiers">{item.customName}</span>
-                  <strong style={{ fontFamily: 'Outfit', fontSize: '1.15rem', color: '#00ff66' }}>${(item.price * item.qty).toFixed(2)}</strong>
+                  <span onClick={() => setEditingCartItemIdx(idx)} style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-main)', cursor: 'pointer', textDecoration: 'underline' }} title="Tap to add or edit modifiers">{item.customName}</span>
+                  <strong style={{ fontFamily: 'Outfit', fontSize: '1.15rem', color: 'var(--accent-success)' }}>${(item.price * item.qty).toFixed(2)}</strong>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>${item.price.toFixed(2)} each</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.4)', padding: '4px 8px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <button onClick={() => adjustQty(idx, -1)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px' }}>
+                    <button onClick={() => adjustQty(idx, -1)} style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '4px' }}>
                       <Minus size={16} />
                     </button>
                     <span style={{ fontWeight: 800, fontSize: '1rem', minWidth: '20px', textAlign: 'center' }}>{item.qty}</span>
-                    <button onClick={() => adjustQty(idx, 1)} style={{ background: 'transparent', border: 'none', color: '#00ff66', cursor: 'pointer', padding: '4px' }}>
+                    <button onClick={() => adjustQty(idx, 1)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-success)', cursor: 'pointer', padding: '4px' }}>
                       <Plus size={16} />
                     </button>
                   </div>
@@ -374,7 +374,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
           <div style={{ padding: '28px', backgroundColor: '#07080c', borderTop: '1px solid var(--border-glass)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '20px' }}>
               <span style={{ color: 'var(--text-muted)', fontSize: '1.05rem' }}>Gross Order Sum:</span>
-              <span style={{ fontSize: '2.6rem', fontWeight: 800, fontFamily: 'Outfit', color: '#fff' }}>${cartTotal.toFixed(2)}</span>
+              <span style={{ fontSize: '2.6rem', fontWeight: 800, fontFamily: 'Outfit', color: 'var(--text-main)' }}>${cartTotal.toFixed(2)}</span>
             </div>
 
             {mode === 'EXPRESS' ? (
@@ -418,11 +418,11 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
 
       {showExpressPayModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(12px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-          <div className="glass-tablet" style={{ width: '100%', maxWidth: '540px', padding: '40px', position: 'relative', border: '2px solid #00ff66', textAlign: 'center' }}>
-            <span style={{ fontSize: '0.8rem', color: '#00ff66', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
+          <div className="glass-tablet" style={{ width: '100%', maxWidth: '540px', padding: '40px', position: 'relative', border: '2px solid var(--accent-success)', textAlign: 'center' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--accent-success)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
               ⚡ Express Quick-Serve Settlement
             </span>
-            <h2 style={{ fontSize: '2.4rem', color: '#fff', marginBottom: '6px' }}>Total Due: ${cartTotal.toFixed(2)}</h2>
+            <h2 style={{ fontSize: '2.4rem', color: 'var(--text-main)', marginBottom: '6px' }}>Total Due: ${cartTotal.toFixed(2)}</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '28px' }}>
               Select instant settlement method below to execute and wipe cart for next inline customer.
             </p>
@@ -434,7 +434,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
                   <button 
                     key={amt}
                     onClick={() => setCashTendered(amt)}
-                    style={{ padding: '14px', borderRadius: '12px', background: cashTendered === amt ? '#00cc52' : 'rgba(255,255,255,0.08)', border: '1px solid var(--border-glass)', color: cashTendered === amt ? '#000' : '#fff', fontWeight: 800, fontSize: '1.3rem', fontFamily: 'Outfit', cursor: 'pointer', transition: '0.15s' }}
+                    style={{ padding: '14px', borderRadius: '12px', background: cashTendered === amt ? '#00cc52' : 'rgba(255,255,255,0.08)', border: '1px solid var(--border-glass)', color: cashTendered === amt ? '#000' : 'var(--text-main)', fontWeight: 800, fontSize: '1.3rem', fontFamily: 'Outfit', cursor: 'pointer', transition: '0.15s' }}
                   >
                     ${amt}
                   </button>
@@ -443,8 +443,8 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
               
               {cashTendered !== null && (
                 <div style={{ padding: '12px', background: 'rgba(0, 255, 102, 0.1)', borderRadius: '12px', border: '1px solid rgba(0, 255, 102, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#00ff66', fontWeight: 700 }}>Return Change to Customer:</span>
-                  <strong style={{ fontSize: '1.6rem', color: '#00ff66', fontFamily: 'Outfit' }}>
+                  <span style={{ color: 'var(--accent-success)', fontWeight: 700 }}>Return Change to Customer:</span>
+                  <strong style={{ fontSize: '1.6rem', color: 'var(--accent-success)', fontFamily: 'Outfit' }}>
                     ${Math.max(0, cashTendered - cartTotal).toFixed(2)}
                   </strong>
                 </div>
@@ -455,7 +455,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
               <button onClick={() => handleRapidExpressSettle('CASH')} disabled={submitting} className="btn-staff" style={{ width: '100%', padding: '16px', fontSize: '1.15rem', background: '#00cc52', color: '#000' }}>
                 💵 Confirm Cash Payment & Wipe Cart →
               </button>
-              <button onClick={() => handleRapidExpressSettle('CARD')} disabled={submitting} className="btn-staff" style={{ width: '100%', padding: '16px', fontSize: '1.15rem', background: '#635bff', color: '#fff' }}>
+              <button onClick={() => handleRapidExpressSettle('CARD')} disabled={submitting} className="btn-staff" style={{ width: '100%', padding: '16px', fontSize: '1.15rem', background: '#635bff', color: 'var(--text-main)' }}>
                 💳 Confirm External Card Terminal Payment
               </button>
               <button onClick={() => setShowExpressPayModal(false)} className="btn-secondary" style={{ width: '100%', padding: '12px', fontSize: '0.95rem', marginTop: '6px' }}>

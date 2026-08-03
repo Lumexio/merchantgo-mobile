@@ -122,7 +122,7 @@ export function AdminSettings({ operator, onClose }: Props) {
             </div>
           )}
         </section>
-        {status && <p style={{ marginTop: '18px', color: '#00ff66' }}>{status}</p>}
+        {status && <p style={{ marginTop: '18px', color: 'var(--accent-success)' }}>{status}</p>}
       </div>
     </div>
   );
@@ -133,5 +133,5 @@ const inputStyle = {
   borderRadius: '8px',
   border: '1px solid rgba(255,255,255,.1)',
   background: 'rgba(0,0,0,.35)',
-  color: '#fff',
+  color: 'var(--text-main)',
 };
