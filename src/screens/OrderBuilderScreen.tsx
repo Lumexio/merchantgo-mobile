@@ -23,7 +23,17 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTable, setSelectedTable] = useState(isSoloModeInit ? 'Express Counter #1' : 'Table #4 (Patio)');
   
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('merchantgo_mobile_cart_backup');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  
+  // ponytail: Auto-save cart to prevent loss on accidental refresh
+  useEffect(() => {
+    localStorage.setItem('merchantgo_mobile_cart_backup', JSON.stringify(cart));
+  }, [cart]);
   
   const [activeItemForMod, setActiveItemForMod] = useState<any | null>(null);
   const [editingCartItemIdx, setEditingCartItemIdx] = useState<number | null>(null);
@@ -95,6 +105,19 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
     flushOfflineQueue(session.token).catch(() => null);
   }, [session.token, session.offline]);
 
+  // ponytail: Prevent closing app if offline queue is pending
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const queue = JSON.parse(localStorage.getItem('pos_offline_queue') || '[]');
+      if (queue.length > 0) {
+        e.preventDefault();
+        e.returnValue = 'You have unsynced offline orders! Please go online before closing.';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   useEffect(() => {
     if (session.offline) {
       setCatalog(displayCatalog(getLocalCatalog()));
@@ -142,9 +165,11 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
         await submitOrderToCloud(payload, session.token || '');
       } else {
         if (!getLocalShift()) throw new Error('Start a staff shift before creating orders');
+        // ponytail: No CRDT conflict resolution. Last write wins. Waitstaff can talk to each other to resolve table conflicts.
         recordLocalOrder(payload, false);
       }
       setSubmitting(false);
+      setCart([]); // Clear cart upon successful table send
       alert(`Order confirmed for ${selectedTable}. The shared station will now lock.`);
       onLock();
     } catch (error) {
@@ -162,6 +187,16 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
           window.location.href = `intent://pay?amount=${cartTotal}#Intent;scheme=mercadopago;package=com.mercadopago.wallet;end;`;
         } else if (provider === 'CLIP') {
           window.location.href = `clip://pay?amount=${cartTotal}&reference=MerchantGo`;
+        }
+        
+        // ponytail: The Human Webhook pattern. Instead of building complex infrastructure, we pause execution
+        // and force the cashier to visually verify the terminal screen after they return from the intent.
+        if (provider && provider !== 'NONE') {
+          const approved = window.confirm("Did the terminal screen turn GREEN and say APPROVED? Click OK to confirm settlement, or Cancel if the payment failed.");
+          if (!approved) {
+            setSubmitting(false);
+            return;
+          }
         }
       }
 
