@@ -41,15 +41,15 @@ export default function App() {
   if (isFirstLaunch) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0c10', color: 'var(--text-main)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ background: 'rgba(24, 25, 33, 0.75)', padding: '40px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.08)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+        <div style={{ background: 'rgba(24, 25, 33, 0.75)', padding: '40px', borderRadius: '16px', border: '1px solid var(--border-glass)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
           <h1 style={{ fontSize: '2rem', marginBottom: '8px', color: 'var(--primary-pos, var(--primary))' }}>MerchantGo</h1>
           <p style={{ color: '#9496a3', marginBottom: '32px' }}>Mobile Express Register</p>
           
           {!isSettingUpOffline ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {authError && <p style={{ color: 'var(--accent-error)' }}>{authError}</p>}
-              <input type="email" placeholder="Owner email" value={email} onChange={event => setEmail(event.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: 'var(--text-main)' }} />
-              <input type="password" placeholder="Password" value={password} onChange={event => setPassword(event.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: 'var(--text-main)' }} />
+              <input type="email" placeholder="Owner email" value={email} onChange={event => setEmail(event.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'var(--bg-input)', color: 'var(--text-main)' }} />
+              <input type="password" placeholder="Password" value={password} onChange={event => setPassword(event.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'var(--bg-input)', color: 'var(--text-main)' }} />
               <button style={{ padding: '14px', borderRadius: '8px', border: 'none', background: 'var(--accent-success)', color: '#000', fontWeight: 600 }} onClick={async () => {
                 try {
                   setAuthError('');
@@ -61,7 +61,7 @@ export default function App() {
               }}>
                 Sign In & Sync Catalog
               </button>
-              <button style={{ padding: '14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: 'var(--text-main)' }} onClick={() => setIsFirstLaunch(false)}>
+              <button style={{ padding: '14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'var(--bg-input)', color: 'var(--text-main)' }} onClick={() => setIsFirstLaunch(false)}>
                 Use Shared Station PIN
               </button>
               <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '8px 0' }} />
@@ -72,12 +72,12 @@ export default function App() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <h2 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Create Local Admin</h2>
-              <input type="text" placeholder="Admin Name (e.g. Marco)" value={localAdminName} onChange={e => setLocalAdminName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: 'var(--text-main)' }} />
+              <input type="text" placeholder="Admin Name (e.g. Marco)" value={localAdminName} onChange={e => setLocalAdminName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'var(--bg-input)', color: 'var(--text-main)' }} />
               <select value={localMode} onChange={event => setLocalMode(event.target.value as LocalMode)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: '#14171e', color: 'var(--text-main)' }}>
                 <option value="SOLO_FOOD_TRUCK">Solo Food Truck</option>
                 <option value="MULTI_STATION_BAR">Multi-station Restaurant / Bar</option>
               </select>
-              <input type="password" inputMode="numeric" placeholder="4 digit staff PIN" value={localAdminPin} onChange={event => setLocalAdminPin(event.target.value.replace(/\D/g, '').slice(0, 4))} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: 'var(--text-main)' }} />
+              <input type="password" inputMode="numeric" placeholder="4 digit staff PIN" value={localAdminPin} onChange={event => setLocalAdminPin(event.target.value.replace(/\D/g, '').slice(0, 4))} style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'var(--bg-input)', color: 'var(--text-main)' }} />
               <button style={{ padding: '14px', borderRadius: '8px', border: 'none', background: 'var(--accent-success)', color: '#000', fontWeight: 600, marginTop: '8px', cursor: 'pointer' }} onClick={async () => {
                 try {
                   setAuthError('');

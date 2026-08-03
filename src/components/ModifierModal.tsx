@@ -43,7 +43,7 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({ item, onClose, onC
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div className="glass-tablet" style={{ width: '100%', maxWidth: '580px', padding: '36px', position: 'relative', border: '1px solid var(--border-glass)' }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '12px', width: '42px', height: '42px', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: '24px', right: '24px', background: 'var(--glass-overlay-hover)', border: 'none', borderRadius: '12px', width: '42px', height: '42px', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <X size={22} />
         </button>
 
@@ -69,7 +69,7 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({ item, onClose, onC
                 style={{
                   padding: '16px 20px',
                   borderRadius: '14px',
-                  background: isSelected ? 'rgba(0, 179, 104, 0.15)' : 'rgba(255,255,255,0.04)',
+                  background: isSelected ? 'rgba(0, 179, 104, 0.15)' : 'var(--glass-overlay)',
                   border: isSelected ? '2px solid #00b368' : '1px solid var(--border-glass)',
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -92,7 +92,7 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({ item, onClose, onC
           })}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '20px', borderTop: '1px solid var(--border-glass)' }}>
           <div>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block' }}>Total Item Calculation:</span>
             <strong style={{ fontSize: '2.2rem', fontFamily: 'Outfit', color: 'var(--text-main)' }}>${calculateTotalPrice()}</strong>

@@ -81,7 +81,7 @@ export const PinKeypad: React.FC<PinKeypadProps> = ({ onAuthenticate }) => {
               style={{
                 height: '70px',
                 borderRadius: '16px',
-                background: 'rgba(255,255,255,0.05)',
+                background: 'var(--glass-overlay)',
                 border: '1px solid var(--border-glass)',
                 color: 'var(--text-main)',
                 fontSize: '1.6rem',
@@ -100,7 +100,7 @@ export const PinKeypad: React.FC<PinKeypadProps> = ({ onAuthenticate }) => {
           <button onClick={() => setPin('')} style={{ height: '70px', borderRadius: '16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', cursor: 'pointer' }}>
             Clear
           </button>
-          <button onClick={() => handlePress('0')} style={{ height: '70px', borderRadius: '16px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', color: 'var(--text-main)', fontSize: '1.6rem', fontWeight: 800, fontFamily: 'Outfit', cursor: 'pointer' }}>
+          <button onClick={() => handlePress('0')} style={{ height: '70px', borderRadius: '16px', background: 'var(--glass-overlay)', border: '1px solid var(--border-glass)', color: 'var(--text-main)', fontSize: '1.6rem', fontWeight: 800, fontFamily: 'Outfit', cursor: 'pointer' }}>
             0
           </button>
           <button onClick={handleDelete} style={{ height: '70px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

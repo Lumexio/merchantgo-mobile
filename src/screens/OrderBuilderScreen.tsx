@@ -205,7 +205,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
           <select 
             value={selectedTable}
             onChange={(e) => setSelectedTable(e.target.value)}
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-glass)', color: 'var(--text-main)', padding: '10px 18px', borderRadius: '12px', fontSize: '1.02rem', fontWeight: 700, fontFamily: 'Outfit', outline: 'none' }}
+            style={{ background: 'var(--border-glass)', border: '1px solid var(--border-glass)', color: 'var(--text-main)', padding: '10px 18px', borderRadius: '12px', fontSize: '1.02rem', fontWeight: 700, fontFamily: 'Outfit', outline: 'none' }}
           >
             {mode === 'EXPRESS' ? (
               <>
@@ -226,7 +226,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
           {['CASHIER', 'MANAGER', 'ADMIN', 'OWNER'].includes(session.role?.toUpperCase()) && (
             <select
               onChange={(e) => document.documentElement.setAttribute('data-theme', e.target.value)}
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-glass)', color: 'var(--text-main)', padding: '10px 14px', borderRadius: '12px', fontSize: '0.9rem', outline: 'none' }}
+              style={{ background: 'var(--border-glass)', border: '1px solid var(--border-glass)', color: 'var(--text-main)', padding: '10px 14px', borderRadius: '12px', fontSize: '0.9rem', outline: 'none' }}
               title="Theme (Ponytail mode: minimal CSS-based themes)"
             >
               <option value="dark-default">Dark (Default)</option>
@@ -256,7 +256,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search menu item title or code (e.g. Smash Burger, FT1)..." 
-                style={{ width: '100%', padding: '16px 16px 16px 48px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '14px', color: 'var(--text-main)', fontSize: '1.05rem', outline: 'none' }}
+                style={{ width: '100%', padding: '16px 16px 16px 48px', background: 'var(--glass-overlay)', border: '1px solid var(--border-glass)', borderRadius: '14px', color: 'var(--text-main)', fontSize: '1.05rem', outline: 'none' }}
               />
             </div>
 
@@ -269,7 +269,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
                     padding: '0 18px',
                     borderRadius: '12px',
                     border: 'none',
-                    backgroundColor: selectedCategory === cat ? 'var(--accent-success)' : 'rgba(255,255,255,0.05)',
+                    backgroundColor: selectedCategory === cat ? 'var(--accent-success)' : 'var(--glass-overlay)',
                     color: selectedCategory === cat ? '#000' : 'var(--text-main)',
                     fontWeight: 800,
                     fontFamily: 'Outfit',
@@ -305,7 +305,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <span style={{ fontSize: '2.6rem' }}>{it.image}</span>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, padding: '3px 8px', background: 'rgba(255,255,255,0.08)', borderRadius: '6px', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, padding: '3px 8px', background: 'var(--border-glass)', borderRadius: '6px', color: 'var(--text-muted)' }}>
                       #{it.id}
                     </span>
                   </div>
@@ -315,7 +315,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
 
                 <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--accent-success)', fontFamily: 'Outfit' }}>{it.price}</span>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', backgroundColor: 'rgba(255,255,255,0.08)', padding: '6px 12px', borderRadius: '8px', fontWeight: 700 }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', backgroundColor: 'var(--border-glass)', padding: '6px 12px', borderRadius: '8px', fontWeight: 700 }}>
                     + Add / Custom
                   </span>
                 </div>
@@ -343,7 +343,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {cart.map((item, idx) => (
-              <div key={idx} style={{ padding: '16px', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div key={idx} style={{ padding: '16px', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-overlay-hover)', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <span onClick={() => setEditingCartItemIdx(idx)} style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-main)', cursor: 'pointer', textDecoration: 'underline' }} title="Tap to add or edit modifiers">{item.customName}</span>
                   <strong style={{ fontFamily: 'Outfit', fontSize: '1.15rem', color: 'var(--accent-success)' }}>${(item.price * item.qty).toFixed(2)}</strong>
@@ -351,7 +351,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>${item.price.toFixed(2)} each</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.4)', padding: '4px 8px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-input)', padding: '4px 8px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
                     <button onClick={() => adjustQty(idx, -1)} style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '4px' }}>
                       <Minus size={16} />
                     </button>
@@ -427,14 +427,14 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
               Select instant settlement method below to execute and wipe cart for next inline customer.
             </p>
 
-            <div style={{ background: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '16px', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.06)', textAlign: 'left' }}>
+            <div style={{ background: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '16px', marginBottom: '24px', border: '1px solid var(--glass-overlay-hover)', textAlign: 'left' }}>
               <span style={{ fontSize: '0.85rem', color: '#ccc', fontWeight: 700, display: 'block', marginBottom: '14px' }}>💵 Cash Tender & Change Calculator:</span>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
                 {[20, 50, 100].map((amt) => (
                   <button 
                     key={amt}
                     onClick={() => setCashTendered(amt)}
-                    style={{ padding: '14px', borderRadius: '12px', background: cashTendered === amt ? '#00cc52' : 'rgba(255,255,255,0.08)', border: '1px solid var(--border-glass)', color: cashTendered === amt ? '#000' : 'var(--text-main)', fontWeight: 800, fontSize: '1.3rem', fontFamily: 'Outfit', cursor: 'pointer', transition: '0.15s' }}
+                    style={{ padding: '14px', borderRadius: '12px', background: cashTendered === amt ? '#00cc52' : 'var(--border-glass)', border: '1px solid var(--border-glass)', color: cashTendered === amt ? '#000' : 'var(--text-main)', fontWeight: 800, fontSize: '1.3rem', fontFamily: 'Outfit', cursor: 'pointer', transition: '0.15s' }}
                   >
                     ${amt}
                   </button>
