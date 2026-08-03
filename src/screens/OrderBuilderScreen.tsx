@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Lock, Search, Plus, Minus, Utensils, Zap } from 'lucide-react';
 import { ModifierModal } from '../components/ModifierModal';
-import { fetchMenuCatalog, flushOfflineQueue, settleExpressOrder, submitOrderToCloud } from '../api/cloudClient';
+import { fetchMenuCatalog, flushOfflineQueue, settleExpressOrder, submitOrderToCloud, fetchActiveOrders } from '../api/cloudClient';
 import type { MerchantSession } from '../api/cloudClient';
 import { ShiftControl } from '../components/ShiftControl';
 import { AdminSettings } from '../components/AdminSettings';
 import { MenuRegistrationModal } from '../components/MenuRegistrationModal';
-import { getLocalCatalog, getLocalShift, recordLocalOrder } from '../localPos';
+import { getLocalCatalog, getLocalShift, recordLocalOrder, listLocalOrders } from '../localPos';
 import type { LocalMenuItem } from '../localPos';
 
 interface OrderBuilderProps {
@@ -32,6 +32,8 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
   const [cashTendered, setCashTendered] = useState<number | null>(null);
   const [showAdminSettings, setShowAdminSettings] = useState(false);
   const [showMenuRegistration, setShowMenuRegistration] = useState(false);
+  const [showMyOrders, setShowMyOrders] = useState(false);
+  const [myOrders, setMyOrders] = useState<any[]>([]);
 
   const displayCatalog = (items: LocalMenuItem[]) => items.map(item => ({
     id: item.id,
@@ -115,6 +117,18 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
       ));
   }, [session]);
 
+  useEffect(() => {
+    if (showMyOrders) {
+      if (session.offline) {
+        setMyOrders(listLocalOrders().filter((o: any) => o.operatorName === activeOperator));
+      } else {
+        fetchActiveOrders(session.token || '').then((orders: any[]) => {
+          setMyOrders(orders.filter(o => o.server === activeOperator));
+        }).catch(() => null);
+      }
+    }
+  }, [showMyOrders, activeOperator, session]);
+
   const handleTableOrderConfirm = async () => {
     if (cart.length === 0) return;
     setSubmitting(true);
@@ -196,6 +210,9 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button onClick={() => setShowMyOrders(true)} className="btn-secondary" style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            📋 My Active Tables
+          </button>
           {session.role === 'ADMIN' && (
             <>
               <button onClick={() => setShowMenuRegistration(true)} className="btn-secondary" style={{ padding: '10px 14px', borderColor: 'var(--accent-success)', color: 'var(--accent-success)' }}>
@@ -485,6 +502,45 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
           </div>
         </div>
       )}
+
+      {/* ponytail: Minimal unabstracted inline modal for viewing own orders */}
+      {showMyOrders && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+          <div className="glass-tablet" style={{ width: '100%', maxWidth: '600px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', border: '1px solid var(--border-glass)' }}>
+            <div style={{ padding: '24px', borderBottom: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ color: 'var(--text-main)' }}>My Active Tables</h2>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Orders created by {activeOperator}</span>
+              </div>
+              <button onClick={() => setShowMyOrders(false)} className="btn-secondary" style={{ padding: '8px 16px' }}>Close</button>
+            </div>
+            
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {myOrders.length === 0 ? (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
+                  You have no active table orders.
+                </div>
+              ) : myOrders.map(order => (
+                <div key={order.id} style={{ background: 'var(--bg-input)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <strong style={{ fontSize: '1.2rem', color: 'var(--text-main)' }}>{order.table || 'Express Order'}</strong>
+                    <span style={{ color: 'var(--accent-success)', fontSize: '1.1rem', fontWeight: 800, fontFamily: 'Outfit' }}>${(order.total || 0).toFixed(2)}</span>
+                  </div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px' }}>
+                    Status: {order.status} • Ticket: {order.id.slice(0,8)}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.9rem', color: '#ccc' }}>
+                    {(order.items || []).map((item: string, i: number) => (
+                      <span key={i}>▪ {item}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {showAdminSettings && (
         <AdminSettings
           operator={session}
