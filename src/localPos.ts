@@ -188,7 +188,7 @@ export async function createLocalAdmin(
     deviceId,
     revision: 1,
     name: name.trim() || 'Local Admin',
-    role: 'ADMIN',
+    role: 'OWNER',
     active: true,
     pinHash: await hashPin(pin),
   };
