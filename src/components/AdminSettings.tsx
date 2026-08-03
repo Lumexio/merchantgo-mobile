@@ -28,6 +28,9 @@ export function AdminSettings({ operator, onClose }: Props) {
   const [status, setStatus] = useState('');
   const [incoming, setIncoming] = useState<LocalSnapshot | null>(null);
 
+  const [terminalProvider, setTerminalProvider] = useState(localStorage.getItem('terminal_provider') || 'NONE');
+  const [terminalId, setTerminalId] = useState(localStorage.getItem('terminal_id') || '');
+
   const authenticate = async (register: boolean) => {
     try {
       setStatus('');
@@ -120,6 +123,18 @@ export function AdminSettings({ operator, onClose }: Props) {
               <button onClick={() => { commitLocalMerge(incoming, 'local'); setIncoming(null); setStatus('Merge committed; local values kept for conflicts.'); }} className="btn-secondary" style={{ flex: 1 }}>Merge, keep local conflicts</button>
               <button onClick={() => { commitLocalMerge(incoming, 'remote'); setIncoming(null); setStatus('Merge committed; remote values chosen for conflicts.'); }} className="btn-secondary" style={{ flex: 1 }}>Merge, use remote conflicts</button>
             </div>
+          )}
+        </section>
+        
+        <section style={{ display: 'grid', gap: '10px', marginTop: '24px' }}>
+          <h3>Payment Terminal (ponytail: direct localStorage)</h3>
+          <select value={terminalProvider} onChange={e => { setTerminalProvider(e.target.value); localStorage.setItem('terminal_provider', e.target.value) }} style={inputStyle}>
+            <option value="NONE">Manual Entry (No Integration)</option>
+            <option value="CLIP">Clip Terminal</option>
+            <option value="MERCADOPAGO">MercadoPago Point</option>
+          </select>
+          {terminalProvider !== 'NONE' && (
+            <input placeholder="Terminal Pairing Code / ID" value={terminalId} onChange={e => { setTerminalId(e.target.value); localStorage.setItem('terminal_id', e.target.value) }} style={inputStyle} />
           )}
         </section>
         {status && <p style={{ marginTop: '18px', color: 'var(--accent-success)' }}>{status}</p>}

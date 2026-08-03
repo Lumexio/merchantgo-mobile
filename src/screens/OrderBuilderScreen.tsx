@@ -142,6 +142,15 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
   const handleRapidExpressSettle = async (paymentMethod: 'CASH' | 'CARD') => {
     setSubmitting(true);
     try {
+      if (paymentMethod === 'CARD') {
+        const provider = localStorage.getItem('terminal_provider');
+        if (provider === 'MERCADOPAGO') {
+          window.location.href = `intent://pay?amount=${cartTotal}#Intent;scheme=mercadopago;package=com.mercadopago.wallet;end;`;
+        } else if (provider === 'CLIP') {
+          window.location.href = `clip://pay?amount=${cartTotal}&reference=MerchantGo`;
+        }
+      }
+
       const payload = {
         paymentMethod,
         table: selectedTable,
@@ -455,9 +464,19 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
               <button onClick={() => handleRapidExpressSettle('CASH')} disabled={submitting} className="btn-staff" style={{ width: '100%', padding: '16px', fontSize: '1.15rem', background: '#00cc52', color: '#000' }}>
                 💵 Confirm Cash Payment & Wipe Cart →
               </button>
+              
               <button onClick={() => handleRapidExpressSettle('CARD')} disabled={submitting} className="btn-staff" style={{ width: '100%', padding: '16px', fontSize: '1.15rem', background: '#635bff', color: 'var(--text-main)' }}>
-                💳 Confirm External Card Terminal Payment
+                {localStorage.getItem('terminal_provider') && localStorage.getItem('terminal_provider') !== 'NONE' 
+                  ? `💳 Send to ${localStorage.getItem('terminal_provider')} Terminal` 
+                  : '💳 Log Manual Card Payment'}
               </button>
+              
+              {(!localStorage.getItem('terminal_provider') || localStorage.getItem('terminal_provider') === 'NONE') && session.role === 'ADMIN' && (
+                <div onClick={() => setShowAdminSettings(true)} style={{ color: '#8b84f9', cursor: 'pointer', fontSize: '0.85rem', marginTop: '-6px', textDecoration: 'underline' }}>
+                  💡 Connect a Clip or MercadoPago terminal
+                </div>
+              )}
+
               <button onClick={() => setShowExpressPayModal(false)} className="btn-secondary" style={{ width: '100%', padding: '12px', fontSize: '0.95rem', marginTop: '6px' }}>
                 Cancel / Return to Cart
               </button>
