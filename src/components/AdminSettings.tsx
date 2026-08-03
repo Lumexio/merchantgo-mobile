@@ -22,24 +22,14 @@ import type { LocalMenuItem, LocalSnapshot } from '../localPos';
 interface Props {
   operator: MerchantSession;
   onClose: () => void;
-  onCatalogChange: (items: LocalMenuItem[]) => void;
 }
 
-export function AdminSettings({ operator, onClose, onCatalogChange }: Props) {
+export function AdminSettings({ operator, onClose }: Props) {
   const [account, setAccount] = useState<MerchantSession | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('');
   const [incoming, setIncoming] = useState<LocalSnapshot | null>(null);
-  const [menuItems, setMenuItems] = useState(() => getLocalCatalog());
-  const [itemName, setItemName] = useState('');
-  const [itemCategory, setItemCategory] = useState('');
-  const [itemPrice, setItemPrice] = useState('');
-
-  const updateMenu = (items: LocalMenuItem[]) => {
-    setMenuItems(items);
-    onCatalogChange(items);
-  };
 
   const authenticate = async (register: boolean) => {
     try {
@@ -84,33 +74,7 @@ export function AdminSettings({ operator, onClose, onCatalogChange }: Props) {
           <button onClick={onClose} className="btn-secondary">Close</button>
         </div>
 
-        {operator.offline && <section style={{ display: 'grid', gap: '10px', marginBottom: '24px' }}>
-          <h3>Menu items</h3>
-          {menuItems.length === 0 && (
-            <p style={{ color: '#ffb800' }}>Start here: add the products you sell. They stay on this device until you choose to sync.</p>
-          )}
-          <input value={itemName} onChange={event => setItemName(event.target.value)} placeholder="Item name" style={inputStyle} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            <input value={itemCategory} onChange={event => setItemCategory(event.target.value)} placeholder="Category (e.g. Tacos)" style={inputStyle} />
-            <input type="number" min="0.01" step="0.01" value={itemPrice} onChange={event => setItemPrice(event.target.value)} placeholder="Price" style={inputStyle} />
-          </div>
-          <button onClick={() => {
-            try {
-              updateMenu(addLocalMenuItem(itemName, itemCategory, Number(itemPrice)));
-              setItemName('');
-              setItemPrice('');
-              setStatus('Menu item saved locally.');
-            } catch (error) {
-              setStatus(error instanceof Error ? error.message : 'Could not save menu item');
-            }
-          }} className="btn-staff" style={{ padding: '12px' }}>Add menu item</button>
-          {menuItems.map(item => (
-            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px', background: 'rgba(255,255,255,.04)', borderRadius: '8px' }}>
-              <span>{item.name} · {item.category} · ${item.price.toFixed(2)}</span>
-              <button onClick={() => updateMenu(removeLocalMenuItem(item.id))} className="btn-secondary">Remove</button>
-            </div>
-          ))}
-        </section>}
+        {/* Menu items section extracted to MenuRegistrationModal per ponytail simplifications */}
 
         {!account ? (
           <section style={{ display: 'grid', gap: '12px', marginBottom: '24px' }}>

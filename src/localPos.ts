@@ -74,6 +74,7 @@ export interface LocalMenuItem extends Revisioned {
   category: string;
   price: number;
   active: boolean;
+  type?: 'ITEM' | 'INGREDIENT';
 }
 
 export interface LocalSnapshot {
@@ -316,20 +317,21 @@ export function getLocalCatalog(): LocalMenuItem[] {
   return items;
 }
 
-export function addLocalMenuItem(name: string, category: string, price: number): LocalMenuItem[] {
+export function addLocalMenuItem(name: string, category: string, price: number, type: 'ITEM' | 'INGREDIENT' = 'ITEM'): LocalMenuItem[] {
   const local = requireConfig();
   const items = getLocalCatalog();
   if (!name.trim()) throw new Error('Menu item name is required');
-  if (!Number.isFinite(price) || price <= 0) throw new Error('Enter a price greater than zero');
+  if (!Number.isFinite(price) || price < 0) throw new Error('Enter a valid price or cost');
   if (items.length >= 25) throw new Error('Free offline menus support up to 25 items');
   const next = [...items, {
     id: `ITEM-${Date.now().toString(36).toUpperCase()}`,
     deviceId: local.deviceId,
     revision: 1,
     name: name.trim(),
-    category: category.trim() || 'Menu',
+    category: category.trim() || (type === 'INGREDIENT' ? 'Ingredient' : 'Menu'),
     price,
     active: true,
+    type,
   }];
   write(CATALOG_KEY, next);
   return next;

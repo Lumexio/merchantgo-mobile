@@ -5,6 +5,7 @@ import { fetchMenuCatalog, flushOfflineQueue, settleExpressOrder, submitOrderToC
 import type { MerchantSession } from '../api/cloudClient';
 import { ShiftControl } from '../components/ShiftControl';
 import { AdminSettings } from '../components/AdminSettings';
+import { MenuRegistrationModal } from '../components/MenuRegistrationModal';
 import { getLocalCatalog, getLocalShift, recordLocalOrder } from '../localPos';
 import type { LocalMenuItem } from '../localPos';
 
@@ -30,6 +31,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
   const [showExpressPayModal, setShowExpressPayModal] = useState(false);
   const [cashTendered, setCashTendered] = useState<number | null>(null);
   const [showAdminSettings, setShowAdminSettings] = useState(false);
+  const [showMenuRegistration, setShowMenuRegistration] = useState(false);
 
   const displayCatalog = (items: LocalMenuItem[]) => items.map(item => ({
     id: item.id,
@@ -186,9 +188,14 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {session.role === 'ADMIN' && (
-            <button onClick={() => setShowAdminSettings(true)} className="btn-secondary" style={{ padding: '10px 14px' }}>
-              Settings & Sync
-            </button>
+            <>
+              <button onClick={() => setShowMenuRegistration(true)} className="btn-secondary" style={{ padding: '10px 14px', borderColor: '#00ff66', color: '#00ff66' }}>
+                + Menu / Ingredients
+              </button>
+              <button onClick={() => setShowAdminSettings(true)} className="btn-secondary" style={{ padding: '10px 14px' }}>
+                Settings & Sync
+              </button>
+            </>
           )}
           <ShiftControl
             offline={session.offline}
@@ -216,6 +223,18 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
             )}
           </select>
 
+          {['CASHIER', 'MANAGER', 'ADMIN', 'OWNER'].includes(session.role?.toUpperCase()) && (
+            <select
+              onChange={(e) => document.documentElement.setAttribute('data-theme', e.target.value)}
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-glass)', color: '#fff', padding: '10px 14px', borderRadius: '12px', fontSize: '0.9rem', outline: 'none' }}
+              title="Theme (Ponytail mode: minimal CSS-based themes)"
+            >
+              <option value="dark-default">Dark (Default)</option>
+              <option value="light-default">Light</option>
+              <option value="dark-ocean">Ocean</option>
+              <option value="light-warm">Warm</option>
+            </select>
+          )}
           <button onClick={onLock} className="btn-secondary" style={{ padding: '10px 18px', background: 'rgba(255, 77, 77, 0.15)', borderColor: 'rgba(255, 77, 77, 0.4)', color: '#ff4d4d', fontWeight: 800 }}>
             <Lock size={16} /> {mode === 'EXPRESS' ? 'Lock Register' : 'Lock Station'}
           </button>
@@ -275,8 +294,8 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
                   Your new offline POS starts empty. Add the food and drinks you actually sell, then start a shift and take orders.
                 </p>
                 {session.role === 'ADMIN' && session.offline && (
-                  <button onClick={() => setShowAdminSettings(true)} className="btn-staff" style={{ padding: '12px 20px' }}>
-                    Open Settings & Sync → Menu items
+                  <button onClick={() => setShowMenuRegistration(true)} className="btn-staff" style={{ padding: '12px 20px' }}>
+                    Open Menu Registration
                   </button>
                 )}
               </div>
@@ -451,6 +470,12 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
         <AdminSettings
           operator={session}
           onClose={() => setShowAdminSettings(false)}
+        />
+      )}
+
+      {showMenuRegistration && (
+        <MenuRegistrationModal
+          onClose={() => setShowMenuRegistration(false)}
           onCatalogChange={items => setCatalog(displayCatalog(items))}
         />
       )}
