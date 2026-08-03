@@ -9,6 +9,7 @@ const REPORTS_KEY = `${PREFIX}zreports`;
 const CATALOG_KEY = `${PREFIX}catalog`;
 const SNAPSHOT_SCHEMA = 'merchantgo.snapshot';
 const SNAPSHOT_VERSION = 2;
+const LEGACY_SAMPLE_IDS = new Set(['FT1', 'FT2', 'BV1', 'M1', 'M3', 'B1', 'B2']);
 
 export type LocalMode = 'SOLO_FOOD_TRUCK' | 'MULTI_STATION_BAR';
 
@@ -68,13 +69,20 @@ export interface LocalZReport extends Revisioned {
   orderCount: number;
 }
 
+export interface LocalMenuItem extends Revisioned {
+  name: string;
+  category: string;
+  price: number;
+  active: boolean;
+}
+
 export interface LocalSnapshot {
   schema: typeof SNAPSHOT_SCHEMA;
   version: typeof SNAPSHOT_VERSION;
   deviceId: string;
   exportedAt: string;
   data: {
-    menuItems: Array<Revisioned & Record<string, unknown>>;
+    menuItems: LocalMenuItem[];
     branches: Array<Revisioned & Record<string, unknown>>;
     staffProfiles: Array<Revisioned & { name: string; role: string; active: boolean }>;
     orders: LocalOrder[];
@@ -299,6 +307,40 @@ export function setLocalCatalog(menuItems: Array<Record<string, unknown>>) {
   })));
 }
 
+export function getLocalCatalog(): LocalMenuItem[] {
+  const items = read<LocalMenuItem[]>(CATALOG_KEY, []);
+  if (items.length > 0 && items.every(item => LEGACY_SAMPLE_IDS.has(item.id))) {
+    write(CATALOG_KEY, []);
+    return [];
+  }
+  return items;
+}
+
+export function addLocalMenuItem(name: string, category: string, price: number): LocalMenuItem[] {
+  const local = requireConfig();
+  const items = getLocalCatalog();
+  if (!name.trim()) throw new Error('Menu item name is required');
+  if (!Number.isFinite(price) || price <= 0) throw new Error('Enter a price greater than zero');
+  if (items.length >= 25) throw new Error('Free offline menus support up to 25 items');
+  const next = [...items, {
+    id: `ITEM-${Date.now().toString(36).toUpperCase()}`,
+    deviceId: local.deviceId,
+    revision: 1,
+    name: name.trim(),
+    category: category.trim() || 'Menu',
+    price,
+    active: true,
+  }];
+  write(CATALOG_KEY, next);
+  return next;
+}
+
+export function removeLocalMenuItem(id: string): LocalMenuItem[] {
+  const next = getLocalCatalog().filter(item => item.id !== id);
+  write(CATALOG_KEY, next);
+  return next;
+}
+
 export function createLocalSnapshot(): LocalSnapshot {
   const local = requireConfig();
   return {
@@ -307,7 +349,7 @@ export function createLocalSnapshot(): LocalSnapshot {
     deviceId: local.deviceId,
     exportedAt: new Date().toISOString(),
     data: {
-      menuItems: read(CATALOG_KEY, []),
+      menuItems: getLocalCatalog(),
       branches: [{
         id: 'branch_root',
         deviceId: local.deviceId,

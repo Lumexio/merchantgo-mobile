@@ -5,7 +5,8 @@ import { fetchMenuCatalog, flushOfflineQueue, settleExpressOrder, submitOrderToC
 import type { MerchantSession } from '../api/cloudClient';
 import { ShiftControl } from '../components/ShiftControl';
 import { AdminSettings } from '../components/AdminSettings';
-import { getLocalShift, recordLocalOrder, setLocalCatalog } from '../localPos';
+import { getLocalCatalog, getLocalShift, recordLocalOrder } from '../localPos';
+import type { LocalMenuItem } from '../localPos';
 
 interface OrderBuilderProps {
   session: MerchantSession;
@@ -30,16 +31,14 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
   const [cashTendered, setCashTendered] = useState<number | null>(null);
   const [showAdminSettings, setShowAdminSettings] = useState(false);
 
-  const defaultCatalog = [
-    { id: 'FT1', name: 'Gourmet Smash Burger', cat: 'Food Truck Specials', price: '$16.50', image: '🍔' },
-    { id: 'FT2', name: 'Loaded Truffle Fries', cat: 'Food Truck Specials', price: '$9.00', image: '🍟' },
-    { id: 'BV1', name: 'Agave Craft Lemonade', cat: 'Beverages', price: '$6.50', image: '🍋' },
-    { id: 'M1', name: 'Ribeye Tacos (3pc)', cat: 'Main Kitchen', price: '$18.50', image: '🌮' },
-    { id: 'M3', name: 'Guacamole Bowl & Chips', cat: 'Main Kitchen', price: '$12.00', image: '🥑' },
-    { id: 'B1', name: 'Añejo Margarita', cat: 'Bar & Cocktails', price: '$14.00', image: '🍸' },
-    { id: 'B2', name: 'IPA Craft Beer Pint', cat: 'Bar & Cocktails', price: '$8.00', image: '🍺' },
-  ];
-  const [catalog, setCatalog] = useState(defaultCatalog);
+  const displayCatalog = (items: LocalMenuItem[]) => items.map(item => ({
+    id: item.id,
+    name: item.name,
+    cat: item.category,
+    price: `$${item.price.toFixed(2)}`,
+    image: '🍽️',
+  }));
+  const [catalog, setCatalog] = useState(() => session.offline ? displayCatalog(getLocalCatalog()) : []);
   const [catalogNotice, setCatalogNotice] = useState('');
   const categories = ['All', ...new Set(catalog.map(item => item.cat))];
 
@@ -94,13 +93,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
 
   useEffect(() => {
     if (session.offline) {
-      setLocalCatalog(catalog.map(item => ({
-        id: item.id,
-        name: item.name,
-        category: item.cat,
-        price: Number(String(item.price).replace(/[^0-9.]/g, '')),
-        active: true,
-      })));
+      setCatalog(displayCatalog(getLocalCatalog()));
       return;
     }
     if (!session.token) return;
@@ -108,7 +101,6 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
       .then(items => {
         if (items.length) {
           setCatalog(items);
-          setLocalCatalog(items);
         }
         setCatalogNotice(
           session.plan === 'FREE'
@@ -117,7 +109,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
         );
       })
       .catch(error => setCatalogNotice(
-        `${error instanceof Error ? error.message : 'Catalog sync failed'} Using this device's starter catalog.`,
+        error instanceof Error ? error.message : 'Catalog sync failed',
       ));
   }, [session]);
 
@@ -275,6 +267,20 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '22px' }}>
+            {catalog.length === 0 && (
+              <div className="glass-tablet" style={{ gridColumn: '1 / -1', padding: '36px', textAlign: 'center', border: '1px dashed #00ff66' }}>
+                <span style={{ fontSize: '2.5rem' }}>1️⃣</span>
+                <h2 style={{ margin: '10px 0' }}>Create your first menu item</h2>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '18px' }}>
+                  Your new offline POS starts empty. Add the food and drinks you actually sell, then start a shift and take orders.
+                </p>
+                {session.role === 'ADMIN' && session.offline && (
+                  <button onClick={() => setShowAdminSettings(true)} className="btn-staff" style={{ padding: '12px 20px' }}>
+                    Open Settings & Sync → Menu items
+                  </button>
+                )}
+              </div>
+            )}
             {filteredCatalog.map(it => (
               <div key={it.id} onClick={() => setActiveItemForMod(it)} className="glass-tablet" style={{ padding: '24px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '180px', borderTop: '3px solid #00ff66' }}>
                 <div>
@@ -442,7 +448,11 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
         </div>
       )}
       {showAdminSettings && (
-        <AdminSettings operator={session} onClose={() => setShowAdminSettings(false)} />
+        <AdminSettings
+          operator={session}
+          onClose={() => setShowAdminSettings(false)}
+          onCatalogChange={items => setCatalog(displayCatalog(items))}
+        />
       )}
 
     </div>
