@@ -409,3 +409,4 @@ export function commitLocalMerge(snapshot: LocalSnapshot, policy: 'local' | 'rem
   write(SHIFTS_KEY, mergeCollection(read(SHIFTS_KEY, []), snapshot.data.shifts, false));
   write(REPORTS_KEY, mergeCollection(read(REPORTS_KEY, []), snapshot.data.zReports, false));
 }
+export function listLocalOrders() { return []; }
