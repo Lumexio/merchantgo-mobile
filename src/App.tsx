@@ -6,6 +6,7 @@ import type { MerchantSession } from './api/cloudClient';
 import { loginMerchantGoAccount } from './api/cloudClient';
 import { createLocalAdmin, hasLocalRegister } from './localPos';
 import type { LocalMode } from './localPos';
+import packageJson from '../package.json';
 
 export default function App() {
   const [isFirstLaunch, setIsFirstLaunch] = useState(() => !hasLocalRegister());
@@ -22,6 +23,26 @@ export default function App() {
   const handleLockStation = () => {
     setSession(null);
   };
+
+  useEffect(() => {
+    // ponytail: Zero-boilerplate GitHub Releases OTA Updater
+    // Hits public GitHub API to check if a newer release tag exists than package version.
+    // If yes, delegates the APK download and install intent directly to the Android browser.
+    fetch('https://api.github.com/repos/Lumexio/merchantgo-mobile/releases/latest')
+      .then(res => res.json())
+      .then(release => {
+        const latestVersion = release.tag_name?.replace('v', '');
+        const currentVersion = packageJson.version;
+        if (latestVersion && latestVersion !== currentVersion && currentVersion !== '0.0.0') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const apkAsset = release.assets?.find((a: any) => a.name.endsWith('.apk'));
+          if (apkAsset && window.confirm(`Update Available! A new version (${latestVersion}) is ready. Download now?`)) {
+            window.open(apkAsset.browser_download_url, '_system');
+          }
+        }
+      })
+      .catch(() => { /* silent fail on network error */ });
+  }, []);
 
   useEffect(() => {
     if (!session) return;
