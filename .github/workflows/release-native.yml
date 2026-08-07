@@ -37,6 +37,12 @@ jobs:
       - name: Capacitor Android Build
         run: |
           npx cap sync android
+          # Inject versionCode and versionName into build.gradle for Android OS upgrade detection
+          if [[ "$GITHUB_REF_NAME" == v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/" android/app/build.gradle
+            sed -i "s/versionName \".*\"/versionName \"$VERSION\"/" android/app/build.gradle
+          fi
           cd android && ./gradlew assembleDebug
           cp app/build/outputs/apk/debug/app-debug.apk "../MerchantGo-${GITHUB_REF_NAME}-android.apk"
           
