@@ -7,6 +7,7 @@ import { loginMerchantGoAccount } from './api/cloudClient';
 import { createLocalAdmin, hasLocalRegister } from './localPos';
 import type { LocalMode } from './localPos';
 import packageJson from '../package.json';
+import { OnboardingConfigModal } from './components/OnboardingConfigModal';
 
 export default function App() {
   const [isFirstLaunch, setIsFirstLaunch] = useState(() => !hasLocalRegister());
@@ -122,7 +123,10 @@ export default function App() {
       {!session ? (
         <PinKeypad onAuthenticate={setSession} />
       ) : (
-        <OrderBuilderScreen session={session} onLock={handleLockStation} />
+        <>
+          <OrderBuilderScreen session={session} onLock={handleLockStation} />
+          <OnboardingConfigModal session={session} />
+        </>
       )}
     </div>
   );
