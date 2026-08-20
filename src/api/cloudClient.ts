@@ -198,4 +198,15 @@ export async function flushOfflineQueue(token: string): Promise<{ synced: number
   localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(remaining));
   return { synced, remaining: remaining.length };
 }
-export async function fetchActiveOrders(_token?: string): Promise<any[]> { return []; }
+export async function fetchActiveOrders(token?: string): Promise<any[]> {
+  if (!token) return [];
+  const result = await request('/orders/active', {
+    headers: authorized(token),
+  });
+  const orders = result?.orders || result || [];
+  return (Array.isArray(orders) ? orders : []).map((order: any) => ({
+    ...order,
+    server: order.waiter || order.server || order.operatorName,
+    time: order.time || 'Cloud',
+  }));
+}
