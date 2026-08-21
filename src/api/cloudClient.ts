@@ -166,7 +166,15 @@ export function settleExpressOrder(orderPayload: unknown, token: string) {
 export function enqueueOfflineOperation(operation: OfflineOperation): void {
   const queue = readOfflineQueue();
   queue.push(operation);
-  localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+  try {
+    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+  } catch (e: any) {
+    if (e.name === 'QuotaExceededError' || e.message.includes('Quota')) {
+      alert('⚠️ Storage Full: Connect to a mobile hotspot to sync past orders before continuing.');
+      throw new Error('LOCAL_STORAGE_FULL');
+    }
+    throw e;
+  }
 }
 
 export function readOfflineQueue(): OfflineOperation[] {

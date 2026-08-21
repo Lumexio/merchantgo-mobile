@@ -503,16 +503,24 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
             <div style={{ background: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '16px', marginBottom: '24px', border: '1px solid var(--glass-overlay-hover)', textAlign: 'left' }}>
               <span style={{ fontSize: '0.85rem', color: '#ccc', fontWeight: 700, display: 'block', marginBottom: '14px' }}>💵 Cash Tender & Change Calculator:</span>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
-                {[20, 50, 100].map((amt) => (
-                  <button 
-                    key={amt}
-                    onClick={() => setCashTendered(amt)}
-                    style={{ padding: '14px', borderRadius: '12px', background: cashTendered === amt ? '#00cc52' : 'var(--border-glass)', border: '1px solid var(--border-glass)', color: cashTendered === amt ? '#000' : 'var(--text-main)', fontWeight: 800, fontSize: '1.3rem', fontFamily: 'Outfit', cursor: 'pointer', transition: '0.15s' }}
-                  >
-                    ${amt}
-                  </button>
-                ))}
-              </div>
+                  {Array.from(new Set([
+                    cartTotal, 
+                    Math.ceil(cartTotal), 
+                    Math.ceil(cartTotal / 5) * 5, 
+                    Math.ceil(cartTotal / 10) * 10,
+                    Math.ceil(cartTotal / 20) * 20,
+                    50, 
+                    100
+                  ])).filter(x => x >= cartTotal).slice(0, 3).map((amt) => (
+                    <button 
+                      key={amt}
+                      onClick={() => setCashTendered(amt)}
+                      style={{ padding: '14px', borderRadius: '12px', background: cashTendered === amt ? '#00cc52' : 'var(--border-glass)', border: '1px solid var(--border-glass)', color: cashTendered === amt ? '#000' : 'var(--text-main)', fontWeight: 800, fontSize: '1.3rem', fontFamily: 'Outfit', cursor: 'pointer', transition: '0.15s' }}
+                    >
+                      ${amt.toFixed(2)}
+                    </button>
+                  ))}
+                </div>
               
               {cashTendered !== null && (
                 <div style={{ padding: '12px', background: 'rgba(0, 255, 102, 0.1)', borderRadius: '12px', border: '1px solid rgba(0, 255, 102, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
