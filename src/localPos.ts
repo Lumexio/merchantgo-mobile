@@ -48,7 +48,7 @@ interface LocalOrder extends Revisioned {
   shiftId: string;
   operatorId: string;
   operatorName: string;
-  status: 'ACTIVE' | 'SETTLED';
+  status: 'ACTIVE' | 'SETTLED' | 'REFUNDED';
   paymentMethod?: string;
   total: number;
   items: unknown[];
@@ -235,6 +235,7 @@ export async function startLocalShift(pin: string): Promise<LocalShift> {
   if (existing) return existing;
   const shift = { id: crypto.randomUUID(), staffId: staff.id, staffName: staff.name, openedAt: new Date().toISOString() };
   write(SHIFT_KEY, shift);
+  appendAuditLog('START_SHIFT', { shiftId: shift.id });
   return shift;
 }
 
@@ -263,6 +264,7 @@ export function recordLocalOrder(
     ...(settled ? { settledAt: now } : {}),
   });
   write(ORDERS_KEY, orders);
+  appendAuditLog(settled ? 'SETTLE_ORDER' : 'CREATE_ORDER', { table: payload.table, total: payload.total });
 }
 
 export function closeLocalShift(): LocalZReport {
@@ -294,6 +296,7 @@ export function closeLocalShift(): LocalZReport {
   }]);
   write(REPORTS_KEY, [...read<LocalZReport[]>(REPORTS_KEY, []), report]);
   localStorage.removeItem(SHIFT_KEY);
+  appendAuditLog('CLOSE_SHIFT', { shiftId: shift.id, reportId: report.id });
   return report;
 }
 
@@ -412,4 +415,60 @@ export function commitLocalMerge(snapshot: LocalSnapshot, policy: 'local' | 'rem
 
 export function listLocalOrders(): LocalOrder[] {
   return read<LocalOrder[]>(ORDERS_KEY, []).filter(order => order.status === 'ACTIVE');
+}
+
+const AUDIT_KEY = 'merchantgo.mobile.audit';
+
+export function appendAuditLog(action: string, details: any = {}) {
+  const shift = getLocalShift();
+  write(AUDIT_KEY, [...read<any[]>(AUDIT_KEY, []), {
+    id: crypto.randomUUID(),
+    timestamp: new Date().toISOString(),
+    operatorId: shift?.staffId || 'SYSTEM',
+    action,
+    details
+  }]);
+}
+
+export function listSettledLocalOrders(): LocalOrder[] {
+  const shift = getLocalShift();
+  return read<LocalOrder[]>(ORDERS_KEY, []).filter(o => (o.status === 'SETTLED' || o.status === 'REFUNDED') && o.shiftId === shift?.id);
+}
+
+export function refundLocalOrder(orderId: string) {
+  const orders = read<LocalOrder[]>(ORDERS_KEY, []);
+  const order = orders.find(entry => entry.id === orderId);
+  if (!order || order.status !== 'SETTLED') throw new Error('Cannot refund an unsettled or missing account');
+  write(ORDERS_KEY, orders.map(entry => entry.id === orderId 
+    ? { ...entry, status: 'REFUNDED', settledAt: new Date().toISOString() } 
+    : entry));
+  appendAuditLog('REFUND_ORDER', { orderId, amount: order.total });
+}
+
+export function getLocalShiftStats() {
+  const shift = getLocalShift();
+  if (!shift) return { totalSales: 0, topWaiters: [] };
+  const allOrders = read<LocalOrder[]>(ORDERS_KEY, []);
+  const settledShiftOrders = allOrders.filter(o => o.status === 'SETTLED' && o.shiftId === shift.id);
+
+  const totalSales = settledShiftOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+  const serverSales = settledShiftOrders.reduce((acc: any, o) => {
+    acc[o.operatorName] = (acc[o.operatorName] || 0) + (o.total || 0);
+    return acc;
+  }, {});
+
+  const topWaiters = Object.entries(serverSales)
+    .sort(([, a], [, b]) => (b as number) - (a as number))
+    .slice(0, 3)
+    .map(([name, sales]) => ({ name, sales }));
+
+  return { totalSales, topWaiters };
+}
+
+export function updateLocalOrder(orderId: string, items: any[], total: number) {
+  const orders = read<LocalOrder[]>(ORDERS_KEY, []);
+  write(ORDERS_KEY, orders.map(entry => entry.id === orderId
+    ? { ...entry, items, total, revision: entry.revision + 1 }
+    : entry));
+  appendAuditLog('UPDATE_ORDER', { orderId, total });
 }

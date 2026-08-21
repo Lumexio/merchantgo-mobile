@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Lock, Search, Plus, Minus, Utensils, Zap } from 'lucide-react';
 import { ModifierModal } from '../components/ModifierModal';
-import { fetchMenuCatalog, flushOfflineQueue, settleExpressOrder, submitOrderToCloud, fetchActiveOrders } from '../api/cloudClient';
+import { fetchMenuCatalog, flushOfflineQueue, settleExpressOrder, submitOrderToCloud, fetchActiveOrders, enqueueOfflineOperation } from '../api/cloudClient';
 import type { MerchantSession } from '../api/cloudClient';
 import { ShiftControl } from '../components/ShiftControl';
 import { AdminSettings } from '../components/AdminSettings';
@@ -103,6 +103,18 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
   useEffect(() => {
     if (!session.token || session.offline) return;
     flushOfflineQueue(session.token).catch(() => null);
+    
+    const interval = setInterval(() => {
+      if (navigator.onLine) flushOfflineQueue(session.token!).catch(() => null);
+    }, 30000);
+    
+    const handleOnline = () => flushOfflineQueue(session.token!).catch(() => null);
+    window.addEventListener('online', handleOnline);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('online', handleOnline);
+    };
   }, [session.token, session.offline]);
 
   // ponytail: Prevent closing app if offline queue is pending
@@ -162,7 +174,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
         items: cart.map(item => `${item.customName} x${item.qty}`),
       };
       if (!session.offline) {
-        await submitOrderToCloud(payload, session.token || '');
+        try { await submitOrderToCloud(payload, session.token || ''); } catch (e: any) { if (e.message.includes('fetch') || e.message.includes('Network')) enqueueOfflineOperation({ kind: 'create_order', payload, created_at: new Date().toISOString() }); else throw e; }
       } else {
         if (!getLocalShift()) throw new Error('Start a staff shift before creating orders');
         // ponytail: No CRDT conflict resolution. Last write wins. Waitstaff can talk to each other to resolve table conflicts.
@@ -207,7 +219,7 @@ export const OrderBuilderScreen: React.FC<OrderBuilderProps> = ({ session, onLoc
         items: cart.map(item => `${item.customName} x${item.qty}`),
       };
       if (!session.offline) {
-        await settleExpressOrder(payload, session.token || '');
+        try { await settleExpressOrder(payload, session.token || ''); } catch (e: any) { if (e.message.includes('fetch') || e.message.includes('Network')) enqueueOfflineOperation({ kind: 'settle_order', payload, created_at: new Date().toISOString() }); else throw e; }
       } else {
         if (!getLocalShift()) throw new Error('Start a staff shift before settling orders');
         recordLocalOrder(payload, true);

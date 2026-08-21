@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Clock3, LogOut, UserCheck } from 'lucide-react';
-import { addLocalStaff, closeLocalShift, getLocalMode, getLocalShift, startLocalShift } from '../localPos';
+import { addLocalStaff, closeLocalShift, getLocalMode, getLocalShift, startLocalShift, getLocalShiftStats, listSettledLocalOrders, refundLocalOrder } from '../localPos';
 import type { LocalShift } from '../localPos';
 
 interface ShiftControlProps {
@@ -80,6 +80,30 @@ export function ShiftControl({ offline, onLock, onShiftChange }: ShiftControlPro
                 placeholder="Staff PIN"
                 style={{ width: '100%', padding: '14px', borderRadius: '10px', background: 'rgba(0,0,0,.4)', border: '1px solid var(--border-glass)', color: 'var(--text-main)', marginBottom: '12px' }}
               />
+            )}
+            {shift && (
+              <div style={{ marginBottom: '20px', background: 'var(--bg-input)', padding: '16px', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <span>Total Sales:</span>
+                  <span style={{ color: 'var(--accent-success)', fontWeight: 'bold' }}>${getLocalShiftStats().totalSales.toFixed(2)}</span>
+                </div>
+                <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
+                  {listSettledLocalOrders().reverse().map(order => (
+                    <div key={order.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: '1px solid var(--border-glass)', opacity: order.status === 'REFUNDED' ? 0.5 : 1 }}>
+                      <div>
+                        <div>{order.table}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{order.paymentMethod}</div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ textDecoration: order.status === 'REFUNDED' ? 'line-through' : 'none' }}>${order.total.toFixed(2)}</span>
+                        {order.status !== 'REFUNDED' && (
+                          <button onClick={() => { if(window.confirm('Void?')) { refundLocalOrder(order.id); setOpen(false); setTimeout(() => setOpen(true), 10); } }} className="btn-secondary" style={{ padding: '4px 8px', fontSize: '0.7rem', color: '#ff4444' }}>Void</button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
             {error && <p style={{ color: 'var(--accent-error)', marginBottom: '12px' }}>{error}</p>}
             <div style={{ display: 'flex', gap: '10px' }}>
