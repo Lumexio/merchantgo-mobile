@@ -11,25 +11,25 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@capacitor/android": "^8.4.2",
+    "@capacitor/android": "^8.5.1",
     "@capacitor/core": "^8.4.2",
-    "lucide-react": "^1.27.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "lucide-react": "^1.43.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.4.2",
+    "@capacitor/cli": "^8.5.1",
     "@emnapi/core": "^1.11.3",
     "@emnapi/runtime": "^1.11.3",
     "@emnapi/wasi-threads": "^1.2.3",
     "@types/node": "^24.13.2",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.3",
-    "happy-dom": "^20.11.6",
-    "oxlint": "^1.71.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "happy-dom": "^20.14.3",
+    "oxlint": "^1.82.0",
     "typescript": "~6.0.2",
-    "vite": "^8.1.1",
+    "vite": "^8.2.2",
     "vitest": "^4.1.11"
   }
 }
